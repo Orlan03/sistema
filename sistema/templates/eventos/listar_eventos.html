@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mis Eventos - TACAE{% endblock %}
+
+{% block content %}
+<!-- BARRA SUPERIOR (estilo similar a login/home) -->
+<nav class="topbar">
+  <div class="topbar-left">
+    <img src="{% static 'img/tacae.jpg' %}" alt="TACAE Logo" class="topbar-logo">
+    <div class="topbar-text">
+      <h1>TACAE</h1>
+      <p>Sistema de Gestión Empresarial</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <!-- Aquí podrías agregar notificaciones o logout -->
+  </div>
+</nav>
+
+<!-- CONTENEDOR PRINCIPAL -->
+<div class="events-container">
+  <!-- Botón Volver (imagen) en la esquina superior izquierda del contenedor -->
+  <div class="back-btn-top">
+    <a href="{% url 'home' %}">
+      <img src="{% static 'img/volver_icon.png' %}" alt="Volver">
+    </a>
+  </div>
+
+  <h2 class="section-title">Mis Eventos</h2>
+  
+  {% if eventos %}
+    <table class="table table-bordered events-table">
+      <thead class="table-dark">
+        <tr>
+          <th>Título</th>
+          <th class="date-col">Fecha del Evento</th>
+          <th>Descripción</th>
+          <th class="actions-col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for evento in eventos %}
+        <tr class="event-row">
+          <td>{{ evento.titulo }}</td>
+          <td>{{ evento.fecha_evento|date:"d/m/Y" }}</td>
+          <td>{{ evento.descripcion }}</td>
+          <td class="actions-col">
+            <a href="{% url 'eventos:editar_evento' evento.id %}" class="btn btn-warning btn-sm action-btn">Editar</a>
+            <a href="{% url 'eventos:eliminar_evento' evento.id %}" class="btn btn-danger btn-sm action-btn">Eliminar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty-message">No tienes eventos creados.</p>
+  {% endif %}
+
+  <!-- Botones de Crear Evento y Volver (si se desea otro botón "Volver" en la parte inferior) -->
+  <div class="events-actions">
+    <a href="{% url 'eventos:crear_evento' %}" class="btn-create-event">
+      ➕ Crear Evento
+    </a>
+  </div>
+</div>
+
+<style>
+/* ---------- RESETEO Y FUENTE ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Helvetica', Arial, sans-serif;
+  background: #f5f7fa; /* Fondo gris claro */
+  color: #333;
+}
+
+/* ---------- BARRA SUPERIOR ---------- */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #003366; /* Azul corporativo */
+  padding: 10px 20px;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.topbar-logo {
+  width: 60px;
+  height: auto;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.topbar-text h1 {
+  color: #fff;
+  font-size: 1.5rem;
+  margin-bottom: 2px;
+}
+.topbar-text p {
+  color: #cfd8dc;
+  font-size: 0.9rem;
+  margin: 0;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ---------- CONTENEDOR PRINCIPAL DE EVENTOS ---------- */
+.events-container {
+  position: relative; /* Para posicionar el botón Volver dentro */
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  animation: fadeIn 0.5s ease;
+  text-align: center;
+}
+.section-title {
+  margin-bottom: 20px;
+  color: #003366;
+}
+
+/* Botón Volver superior (imagen) */
+.back-btn-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+.back-btn-top img {
+  width: 30px; /* Ajusta el tamaño del ícono */
+  height: 30px;
+  border-radius: 50%;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.back-btn-top img:hover {
+  transform: scale(1.2);
+  background-color: rgba(197,203,205, 0.5);
+}
+
+/* ---------- TABLA DE EVENTOS ---------- */
+.events-table {
+  width: 100%;
+  border-collapse: separate; /* Permite border-radius */
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  
+}
+.events-table th,
+.events-table td {
+  padding: 12px 10px;
+  text-align: left;
+  transition: background 0.3s ease;
+  border: 1px solid #c5c5c5 !important; /* Bordes en cada celda */
+
+}
+.events-table thead.table-dark th {
+  background-color: #003366;
+  color: #fff;
+  text-align: center; /* Centra el texto en los encabezados */
+
+}
+.event-row {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.event-row:hover {
+  background: #54697d;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.date-col {
+  width: 100px; /* Ajusta el valor según lo que necesites */
+  white-space: nowrap; /* Evita que el contenido se divida en varias líneas */
+}
+/* Reducir ancho de la columna de acciones */
+.actions-col {
+  width: 150px;
+  text-align: center;
+}
+
+/* ---------- MENSAJE VACÍO ---------- */
+.empty-message {
+  text-align: center;
+  color: #777;
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+/* ---------- BOTONES DE ACCIONES (Crear y Volver) ---------- */
+.events-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.btn-create-event,
+.btn-back-home {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-create-event {
+  background-color: #007bff;
+  color: #fff;
+}
+.btn-create-event:hover {
+  background-color: #0058b6;
+  transform: scale(1.03);
+}
+.btn-back-home {
+  background-color: #6c757d;
+  color: #fff;
+}
+.btn-back-home:hover {
+  background-color: #5a6268;
+  transform: scale(1.03);
+}
+
+/* ---------- ANIMACIÓN FADEIN ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<!-- Bootstrap 5 (si no está en base.html) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

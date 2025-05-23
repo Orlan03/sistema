@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}TACAE - Iniciar Sesión{% endblock %}
+
+{% block content %}
+<div class="split-container">
+  
+  <!-- Sección Izquierda (fondo azul, logo y texto) -->
+  <div class="left-side">
+    <img src="{% static 'img/tacae.jpg' %}" alt="TACAE Logo" class="logo-tacae">
+    <h1>TACAE</h1>
+    <p>La excelencia en servicio</p>
+  </div>
+  
+  <!-- Sección Derecha (tarjeta de login) -->
+  <div class="right-side">
+    <div class="login-card">
+      
+      <!-- Círculo con el ícono de usuario -->
+      <div class="login-icon">
+        <img src="{% static 'img/users_icon.png' %}" alt="User Icon">
+      </div>
+
+      <h2>Iniciar Sesión</h2>
+      
+      <!-- Mensajes de error o éxito -->
+      {% if messages %}
+          <div class="messages">
+              {% for message in messages %}
+                  <div class="message">{{ message }}</div>
+              {% endfor %}
+          </div>
+      {% endif %}
+      
+      <!-- Formulario de login -->
+      <form method="post" autocomplete="off">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          
+          <div class="input-group">
+              {{ form.username.label_tag }}
+              {{ form.username }}
+              {% if form.username.errors %}
+                  <div class="error">{{ form.username.errors }}</div>
+              {% endif %}
+          </div>
+          
+          <div class="input-group">
+              {{ form.password.label_tag }}
+              {{ form.password }}
+              {% if form.password.errors %}
+                  <div class="error">{{ form.password.errors }}</div>
+              {% endif %}
+          </div>
+
+          <div class="remember-section">
+              <input type="checkbox" id="remember_me" name="remember_me" />
+              <label for="remember_me">Recordarme</label>
+          </div>
+
+          <button type="submit" class="submit-btn">Acceder</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Helvetica", Arial, sans-serif;
+}
+
+/* Contenedor principal en dos columnas */
+.split-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sección Izquierda (fondo azul, logo y texto) */
+.left-side {
+  flex: 0.5;
+  background-color: #003366;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+.logo-tacae {
+  width: 250px;
+  height: auto;
+  margin-bottom: 20px;
+}
+.left-side h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+.left-side p {
+  font-size: 16px;
+}
+
+/* Sección Derecha (tarjeta de login) */
+.right-side {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e5e5e5;
+  padding: 20px;
+}
+
+/* Tarjeta de login */
+.login-card {
+  position: relative;
+  background: #fff;
+  border-radius: 50px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 40px 30px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Círculo con el ícono de usuario */
+.login-icon {
+  width: 80px;
+  height: 80px;
+  background-color: #003366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  top: -75px;
+  margin: 0 auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.login-icon img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+/* Título */
+.login-card h2 {
+  margin-top: -40px;
+  margin-bottom: 15px;
+  color: #003366;
+}
+
+/* Campos del formulario */
+.input-group {
+  margin-bottom: 10px;
+  text-align: left;
+}
+.input-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #333;
+}
+.input-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Sección "Recordarme" */
+.remember-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  text-align: left;
+}
+.remember-section label {
+  margin-left: 5px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Botón de acceso */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #003366;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.submit-btn:hover {
+  background-color: #002244;
+}
+
+/* Enlaces extra */
+.extra-links {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.extra-links a {
+  color: #003366;
+  font-size: 14px;
+  text-decoration: none;
+}
+.extra-links a:hover {
+  text-decoration: underline;
+}
+
+/* Mensajes de error */
+.messages .message {
+  background-color: #ffdddd;
+  color: #d8000c;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  text-align: left;
+}
+</style>
+{% endblock %}

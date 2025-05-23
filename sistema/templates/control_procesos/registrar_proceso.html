@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Nuevo Proceso</title>
+  <style>
+    /* ------------------------------
+       1. ESTILOS GLOBALES
+    -------------------------------*/
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f0f8ff; /* Fondo azul muy claro */
+      color: #333;
+    }
+
+    /* ------------------------------
+       2. BARRA SUPERIOR (NAV)
+    -------------------------------*/
+    .top-bar {
+      background-color: #0d6efd; /* Azul principal */
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .top-bar img {
+      width: 120px;
+      margin-right: 15px;
+    }
+    .top-bar h1 {
+      color: #fff;
+      font-size: 1.6rem;
+      margin: 0;
+    }
+
+    /* ------------------------------
+       3. CONTENEDOR PRINCIPAL
+    -------------------------------*/
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;       /* Fondo blanco */
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 20px 30px;
+    }
+
+    /* Título dentro del contenedor */
+    .container h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #0d6efd;        /* Azul principal */
+      font-size: 1.8rem;
+    }
+
+    /* ------------------------------
+       4. FORMULARIO EN REJILLA
+    -------------------------------*/
+    .form-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr; /* Etiquetas a la izquierda (150px), inputs a la derecha */
+      gap: 15px 20px;                  /* Espacio entre filas y columnas */
+      margin-bottom: 20px;
+      align-items: center;            /* Centra verticalmente los campos */
+    }
+    /* Ajustes para pantallas pequeñas */
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr; /* En móvil, una sola columna */
+      }
+    }
+
+    .form-grid label {
+      font-weight: bold;
+      color: #0d6efd;  /* Azul */
+      margin-bottom: 5px;
+    }
+
+    /* Inputs y select */
+    .form-grid input[type="text"],
+    .form-grid input[type="date"],
+    .form-grid input[type="number"],
+    .form-grid textarea,
+    .form-grid select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #0d6efd;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-grid input[type="text"]:focus,
+    .form-grid input[type="date"]:focus,
+    .form-grid input[type="number"]:focus,
+    .form-grid textarea:focus,
+    .form-grid select:focus {
+      outline: none;
+      border-color: #0b5ed7; /* Un poco más oscuro */
+      box-shadow: 0 0 4px rgba(13, 110, 253, 0.3);
+    }
+
+    /* Ajuste de los campos de Django (form.as_p) 
+       Si tus campos generan <p>, puedes reubicarlos dentro del grid. */
+    form p {
+      margin: 0;
+    }
+    form p label {
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #0d6efd;
+      display: block;
+    }
+
+    /* ------------------------------
+       5. BOTONES
+    -------------------------------*/
+    .button-group {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 5px;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      margin-bottom: 10px;
+      transition: background 0.3s, transform 0.2s;
+      color: #fff;
+      width: 100%;
+      max-width: 250px; /* Para que no ocupe todo el ancho en desktop */
+    }
+    .btn-primary {
+      background: #0d6efd;
+    }
+    .btn-primary:hover {
+      background: #0b5ed7;
+      transform: scale(1.03);
+    }
+    .btn-secondary {
+      background: #6c757d;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: scale(1.03);
+    }
+
+    /* Para separar botones en horizontal, si lo deseas */
+    .button-group .btn + .btn {
+      margin-left: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Barra Superior con Logo y Título -->
+<div class="top-bar">
+  <img src="{% static 'img/tacae.jpg' %}" alt="TACAE Logo">
+  <h1>Registrar Nuevo Proceso</h1>
+</div>
+
+<!-- Contenedor Principal -->
+<div class="container">
+  <h2>Datos del Proceso</h2>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Usamos una rejilla para organizar las etiquetas a la izquierda y los inputs a la derecha -->
+    <div class="form-grid">
+      <!-- Seleccionar Subcarpeta -->
+      <label for="id_carpeta">Subcarpeta:</label>
+      <select name="carpeta_id" id="id_carpeta" required>
+        <option value="" disabled selected>Seleccione una subcarpeta</option>
+        {% for subcarpeta in subcarpetas %}
+          <optgroup label="📁 {{ subcarpeta.nombre }}">
+            {% for subsub in subcarpeta.subcarpetas.all %}
+              <option value="{{ subsub.id }}">↳ {{ subsub.nombre }}</option>
+            {% endfor %}
+          </optgroup>
+        {% endfor %}
+      </select>
+
+      <!-- Campos del Formulario (as_p).
+           Si tus campos se muestran en <p>, podemos reubicarlos manualmente. 
+           Por ejemplo: -->
+      {{ form.as_p }}
+      <!-- NOTA: Cada <p> del form se mostrará secuencialmente. 
+           Puedes personalizarlo para que cada campo encaje en la grid, 
+           en vez de usar as_p, si prefieres un control más preciso. -->
+    </div>
+
+    <!-- Botones -->
+    <div class="button-group">
+      <button type="submit" class="btn btn-primary">💾 Guardar Proceso</button>
+      <a href="{% url 'carpetas:ver_carpeta' carpeta_padre.id %}" class="btn btn-secondary">⬅ Volver</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

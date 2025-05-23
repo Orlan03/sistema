@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Registrar Firma - TACAE{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO AZUL (diseño de la primera imagen) -->
+<div class="bg-primary text-white py-3 mb-4">
+  <div class="container d-flex align-items-center">
+    <h1 class="ms-3">Registrar Firma</h1>
+  </div>
+</div>
+
+<!-- CONTENEDOR PRINCIPAL CON FONDO CLARO -->
+<div class="container">
+  <div class="card shadow-lg mb-5" style="border-radius:10px;">
+    <div class="card-header bg-primary text-white text-center" style="border-radius:10px 10px 0 0;">
+      <h2>Registrar Firma</h2>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success mt-3">Registrar</button>
+      </form>
+    </div>
+    <div class="card-footer text-center">
+      <a href="{% url 'carpetas:ver_carpeta' carpeta.id %}" class="btn btn-secondary">⬅ Volver</a>
+    </div>
+  </div>
+</div>
+
+<!-- ESTILOS ADICIONALES PARA APLICAR EL DISEÑO DE LA PRIMERA IMAGEN -->
+<style>
+  /* Fondo claro para toda la página */
+  body {
+    background-color: #eaf6ff;
+    font-family: Arial, sans-serif;
+  }
+
+  /* Estilo “cápsula” para inputs, selects y textarea */
+  .card-body input[type="text"],
+  .card-body input[type="password"],
+  .card-body input[type="email"],
+  .card-body input[type="number"],
+  .card-body input[type="date"],
+  .card-body select,
+  .card-body textarea {
+    border: 2px solid #007bff;
+    border-radius: 25px;
+    padding: 10px 15px;
+    width: 100%;
+    margin-bottom: 15px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  
+  /* Efecto de focus para los campos */
+  .card-body input:focus,
+  .card-body select:focus,
+  .card-body textarea:focus {
+    outline: none;
+    border-color: #0056b3;
+    box-shadow: 0 0 5px rgba(0,86,179,0.3);
+  }
+  
+  /* Placeholder en gris e itálico (opcional) */
+  .card-body ::placeholder {
+    color: #999;
+    font-style: italic;
+  }
+</style>
+{% endblock %}

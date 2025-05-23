@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Bienvenido, Jefe</h2>
+
+<div>
+    <h3>Menú de Gestión de Usuarios</h3>
+    <ul>
+        <li><a href="{% url 'registrar_usuario' %}">Registrar Nuevo Usuario</a></li>
+        <li><a href="{% url 'lista_empleados' %}">Ver / Editar / Eliminar Usuarios</a></li>
+    </ul>
+</div>
+
+{% endblock %}

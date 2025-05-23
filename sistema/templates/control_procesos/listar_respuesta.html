@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}📩 Registrar Respuesta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header text-white" style="background-color: #004085;"> <!-- Color acorde a tu logo -->
+            <h4 class="mb-0">📩 Registrar Nueva Respuesta</h4>
+        </div>
+        <div class="card-body">
+            
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>⚠️ Error:</strong> Por favor corrige los errores en el formulario.
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field|title }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="{{ form.proceso.id_for_label }}" class="form-label fw-bold">📄 Proceso</label>
+                    {{ form.proceso }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.fecha_respuesta.id_for_label }}" class="form-label fw-bold">📅 Fecha de Respuesta</label>
+                    {{ form.fecha_respuesta }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.calificacion.id_for_label }}" class="form-label fw-bold">⭐ Calificación</label>
+                    {{ form.calificacion }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.fecha_cumplimiento.id_for_label }}" class="form-label fw-bold">📅 Fecha de Cumplimiento</label>
+                    {{ form.fecha_cumplimiento }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-bold">📝 Observaciones</label>
+                    {{ form.observaciones }}
+                </div>
+
+                <button type="submit" class="btn btn-lg text-white" style="background-color: #004085;">
+                    💾 Guardar Respuesta
+                </button>
+                
+                <a href="javascript:history.back()" class="btn btn-secondary btn-lg">
+                    ⬅ Volver
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- 🎨 Estilos Mejorados -->
+<style>
+    .card {
+        max-width: 600px;
+        margin: auto;
+        border-radius: 10px;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        margin-top: 10px;
+        border-radius: 8px;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ced4da;
+    }
+
+    input:focus, select:focus, textarea:focus {
+        border-color: #004085;
+        box-shadow: 0 0 5px rgba(0, 64, 133, 0.5);
+    }
+</style>
+
+{% endblock %}

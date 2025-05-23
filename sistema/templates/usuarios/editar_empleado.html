@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="form-container">
+    <div class="header">
+        <a href="{% url 'lista_empleados' %}">
+            <img src="{% static 'img/volver_icon.png' %}" alt="Volver" class="btn-back">
+        </a>
+        <h2>Editar Empleado</h2>
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        <ul>
+            {% for message in messages %}
+            <li style="color: green;">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="form-register">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        
+        <!-- Nombres -->
+        <div class="form-group">
+            <label for="id_nombres">
+                <img src="{% static 'img/nombres_icon.png' %}" alt="Nombres" class="form-icon">
+            </label>
+            {{ form.nombres }}
+        </div>
+        
+        <!-- Apellidos -->
+        <div class="form-group">
+            <label for="id_apellidos">
+                <img src="{% static 'img/nombres_icon.png' %}" alt="Apellidos" class="form-icon">
+            </label>
+            {{ form.apellidos }}
+        </div>
+
+        <!-- Cédula -->
+        <div class="form-group">
+            <label for="id_cedula">
+                <img src="{% static 'img/cedula_icon.png' %}" alt="Cédula" class="form-icon">
+            </label>
+            {{ form.cedula }}
+        </div>
+
+        <!-- Celular -->
+        <div class="form-group">
+            <label for="id_celular">
+                <img src="{% static 'img/celular_icon (2).png' %}" alt="Celular" class="form-icon">
+            </label>
+            {{ form.celular }}
+        </div>
+
+        <!-- Nombre de usuario -->
+        <div class="form-group">
+            <label for="id_username">
+                <img src="{% static 'img/nombres_icon.png' %}" alt="Nombre de usuario" class="form-icon">
+            </label>
+            {{ form.username }}
+        </div>
+
+        <!-- Contraseña (nueva, opcional) -->
+        <div class="form-group">
+            <label for="id_password">
+                <img src="{% static 'img/password_icon.png' %}" alt="Contraseña" class="form-icon">
+            </label>
+            {{ form.password }}
+        </div>
+
+        <!-- Confirmar Contraseña (nueva, opcional) -->
+        <div class="form-group">
+            <label for="id_confirm_password">
+                <img src="{% static 'img/password_icon.png' %}" alt="Confirmar Contraseña" class="form-icon">
+            </label>
+            {{ form.confirm_password }}
+        </div>
+
+        <!-- Botón Guardar Cambios -->
+        <div class="form-buttons">
+            <button type="submit" class="btn-submit">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+
+<style>
+/* (Aquí puedes incluir los estilos que ya tienes) */
+</style>
+
+
+<style>
+/* ---------- RESETEO Y FUENTE ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Helvetica', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #333;
+}
+
+/* ---------- CONTENEDOR DEL FORMULARIO ---------- */
+.form-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* ---------- ENCABEZADO ---------- */
+.header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.btn-back {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.btn-back:hover {
+  background-color: rgb(197, 203, 205);
+  transform: scale(1.2);
+}
+h2 {
+  font-size: 24px;
+  color: #0f17a8;
+  text-align: center;
+  flex: 1;
+}
+
+/* ---------- FORMULARIO ---------- */
+.form-register {
+  display: flex;
+  flex-direction: column;
+}
+.form-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+}
+.form-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+.form-register input {
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  width: 100%;
+}
+.form-register input:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+.form-register input::placeholder {
+  color: #717070;
+  font-style: italic;
+}
+
+/* ---------- BOTÓN ---------- */
+.form-buttons {
+  margin-top: 30px;
+  text-align: center;
+}
+.btn-submit {
+  padding: 10px 17px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.btn-submit:hover {
+  background-color: #45a049;
+}
+</style>
+{% endblock %}

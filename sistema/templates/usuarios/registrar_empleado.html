@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="form-container">
+    <div class="header">
+        <a href="{% url 'lista_empleados' %}">
+            <img src="{% static 'img/volver_icon.png' %}" alt="Volver" class="btn-back">
+        </a>
+        <h2>Registrar Empleado</h2>
+    </div>
+
+    {% if messages %}
+        <div class="messages">
+            <ul>
+                {% for message in messages %}
+                    <li style="color: red;">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>  
+    {% endif %}
+
+    <form method="post" class="form-register">
+        {% csrf_token %}
+        
+        <!-- Nombres -->
+        <div class="form-group">
+            <label for="nombres">
+                <img src="{% static 'img/nombres_icon.png' %}" alt="Nombres" class="form-icon form-icon-nombres">
+            </label>
+            <input type="text" name="nombres" id="nombres" value="{{ empleado.nombres }}" placeholder="Nombres completos">
+        </div>
+        
+        <!-- Apellidos -->
+        <div class="form-group">
+            <label for="apellidos">
+                <img src="{% static 'img/nombres_icon.png' %}" alt="Apellidos" class="form-icon form-icon-apellidos">
+            </label>
+            <input type="text" name="apellidos" id="apellidos" value="{{ empleado.apellidos }}" placeholder="Apellidos completos">
+        </div>
+
+        <!-- Cédula -->
+        <div class="form-group">
+            <label for="cedula">
+                <img src="{% static 'img/cedula_icon.png' %}" alt="Cédula" class="form-icon form-icon-cedula">
+            </label>
+            <input type="text" name="cedula" id="cedula" value="{{ empleado.cedula }}" placeholder="Número de cédula">
+        </div>
+
+        <!-- Número de celular -->
+        <div class="form-group">
+            <label for="celular">
+                <img src="{% static 'img/celular_icon (2).png' %}" alt="Celular" class="form-icon form-icon-celular">
+            </label>
+            <input type="text" name="celular" id="celular" value="{{ empleado.celular }}" placeholder="Número de celular">
+        </div>
+
+        <!-- Nombre de usuario -->
+        <div class="form-group">
+            <label for="username">
+                <img src="{% static 'img/nombres_icon.png' %}" alt="Nombre de usuario" class="form-icon form-icon-username">
+            </label>
+            <input type="text" name="username" id="username" value="{{ empleado.user.username }}" placeholder="Nombre de usuario">
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+            <label for="password">
+                <img src="{% static 'img/password_icon.png' %}" alt="Contraseña" class="form-icon form-icon-password">
+            </label>
+            <input type="password" name="password" id="password" placeholder="Ingrese una contraseña">
+        </div>
+
+        <!-- Confirmar Contraseña -->
+        <div class="form-group">
+            <label for="confirm_password">
+                <img src="{% static 'img/password_icon.png' %}" alt="Confirmar Contraseña" class="form-icon form-icon-confirm-password">
+            </label>
+            <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirme la contraseña">
+        </div>
+
+        <!-- Botón Guardar Cambios (centrado) -->
+        <div class="form-buttons">
+            <button type="submit" class="btn-submit">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+
+<style>
+/* RESETEO Y FUENTE */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Helvetica', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #333;
+}
+
+/* CONTENEDOR DEL FORMULARIO */
+.form-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* ENCABEZADO */
+.header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.btn-back {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.btn-back:hover {
+  background-color: rgb(197, 203, 205);
+  transform: scale(1.2);
+}
+h2 {
+  font-size: 24px;
+  color: #0f17a8;
+  text-align: center;
+  flex: 1;
+}
+
+/* FORMULARIO */
+.form-register {
+  display: flex;
+  flex-direction: column;
+}
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.form-group label {
+  font-size: 16px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-group input {
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  width: 100%;
+  margin-left: 10px;
+}
+.form-group input:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+/* ICONOS */
+.form-icon {
+  width: 20px;
+  height: 20px;
+}
+.form-icon-nombres {
+  width: 25px;
+  height: 25px;
+}
+.form-icon-apellidos {
+  width: 25px;
+  height: 25px;
+}
+.form-icon-cedula {
+  width: 32px;
+  height: 37px;
+}
+.form-icon-celular {
+  width: 30px;
+  height: 38px;
+}
+.form-icon-username {
+  width: 25px;
+  height: 25px;
+}
+.form-icon-password {
+  width: 40px;
+  height: 25px;
+}
+.form-icon-confirm-password {
+  width: 40px;
+  height: 25px;
+}
+
+/* Placeholder */
+.form-group input::placeholder {
+  color: #717070;
+  font-style: italic;
+}
+
+/* BOTÓN CENTRADO */
+.form-buttons {
+  margin-top: 30px;
+  text-align: center;
+}
+.btn-submit {
+  padding: 10px 17px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: auto;
+  margin-top: 10px;
+  text-align: center;
+}
+.btn-submit:hover {
+  background-color: #45a049;
+}
+</style>
+{% endblock %}

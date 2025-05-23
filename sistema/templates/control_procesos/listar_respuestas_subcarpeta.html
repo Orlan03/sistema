@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Respuestas para la carpeta: {{ carpeta.nombre }}</h2>
+
+{% if respuestas %}
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Proceso</th>
+            <th>Fecha Respuesta</th>
+            <th>Calificación</th>
+            <th>Fecha Cumplimiento</th>
+            <th>Observaciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in respuestas %}
+        <tr>
+            <td>{{ r.proceso.proceso }}</td>
+            <td>{{ r.fecha_respuesta|date:"d/m/Y" }}</td>
+            <td>{{ r.calificacion }}</td>
+            <td>{{ r.fecha_cumplimiento|date:"d/m/Y" }}</td>
+            <td>{{ r.observaciones }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p class="text-muted">No hay respuestas para mostrar.</p>
+{% endif %}
+{% endblock %}

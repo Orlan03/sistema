@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header text-center bg-transparent border-0">
+          <img src="{% static 'img/tacae.jpg' %}" alt="TACAE Logo" class="img-fluid rounded-circle mb-3" style="max-width: 120px;">
+          <h3 class="fw-bold">Registrar Nuevo Cobro</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
+            <!-- Selección de Proceso -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">
+                <i class="fas fa-folder-open text-warning"></i> Seleccionar Proceso
+              </label>
+              <select name="proceso" class="form-select">
+                {% for carpeta, procesos in carpetas_con_procesos.items %}
+                  <optgroup label="📂 {{ carpeta.nombre }}">
+                    {% for proceso in procesos %}
+                      <option value="{{ proceso.id }}">📝 {{ proceso.proceso }}</option>
+                    {% endfor %}
+                  </optgroup>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Valor Cobrado -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">
+                <i class="fas fa-dollar-sign text-success"></i> Valor Cobrado
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                {{ form.cobro }}
+              </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">
+                <i class="fas fa-comment text-info"></i> Observaciones
+              </label>
+              {{ form.observacion }}
+            </div>
+
+            <!-- Botones -->
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'carpetas:ver_carpeta' carpeta.id %}" class="btn btn-secondary">
+                ⬅ Volver
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Cobro
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap CSS (si no está cargado en tu base.html) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+{% endblock %}

@@ -1,0 +1,31 @@
+/* styles.css */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+  }
+  header {
+    background: #003366;
+    padding: 10px 20px;
+  }
+  .btn-inicio {
+    background: #fff;
+    color: #003366;
+    padding: 8px 12px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  .btn-inicio:hover {
+    background: #ccc;
+  }
+  footer {
+    background: #003366;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: relative;
+  }
+  /* ... Reglas para .card, .btn, etc. */
+  

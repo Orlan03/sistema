@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}📂 {{ carpeta.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-enhanced">
+    <h2 class="folder-title">📁 {{ carpeta.nombre }}</h2>
+
+    <!-- Mostrar solo subcarpetas -->
+    <h3 class="section-title"></h3>
+    <div class="grid-container">
+        {% for subcarpeta in carpeta.subcarpetas.all %}
+            <div class="folder-card">
+                <a href="{% url 'carpetas:ver_carpeta' subcarpeta.id %}" class="folder-link">
+                    📁 {{ subcarpeta.nombre }}
+                </a>
+            </div>
+        {% empty %}
+            <p>No hay subcarpetas en esta carpeta.</p>
+        {% endfor %}
+    </div>
+
+    <!-- PROCESOS: Solo se muestran si la carpeta pertenece a "Procesos Pendientes" -->
+    {% if carpeta.padre and carpeta.padre.nombre == "Procesos Pendientes" %}
+  <div class="process-section">
+    <h3 class="section-title">📄 Procesos Registrados en {{ carpeta.nombre }}</h3>
+
+    {% if carpeta.procesos.all %}
+      <table class="table-enhanced" id="tableProcesos">
+        <thead>
+          <tr>
+            <th>Proceso</th>
+            <th>Responsable</th>
+            <th>Fecha Cumplimiento</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for proceso in carpeta.procesos.all %}
+            <!-- Le damos un id único para anclar -->
+            <tr id="proc-{{ proceso.id }}">
+              <td>{{ proceso.proceso }}</td>
+              <td>{{ proceso.responsable }}</td>
+              <td>{{ proceso.fecha_cumplimiento|default:"-" }}</td>
+              <td>
+                <a href="{% url 'control_procesos:ver_proceso' proceso.id %}" class="btn-details">
+                  Ver Detalles
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No hay procesos registrados en esta carpeta.</p>
+    {% endif %}
+
+    <a href="{% url 'procesos:registrar_proceso' carpeta.id %}" class="btn-register">📋 Registrar Nuevo Proceso</a>
+  </div>
+{% endif %}
+
+    <a href="{% url 'carpetas:listar_carpetas' %}" class="btn-back">⬅ Volver</a>
+</div>
+
+<style>
+ /* Contenedor principal con fondo degradado y bordes redondeados */
+ .container-enhanced {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 30px;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+  
+  /* Títulos */
+  .folder-title {
+      font-size: 2rem;
+      color: #002244;
+      margin-bottom: 20px;
+      text-align: center;
+  }
+  .section-title {
+      font-size: 1.5rem;
+      color: #00509E;
+      margin: 20px 0 10px;
+      text-align: center;
+  }
+  
+  /* Grid para subcarpetas */
+  .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+  }
+  
+  /* Tarjeta de carpeta */
+  .folder-card {
+      background: #e9eff5;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .folder-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Enlace de la carpeta */
+  .folder-link {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00509E;
+      text-decoration: none;
+      transition: color 0.3s ease;
+  }
+  .folder-link:hover {
+      text-decoration: underline;
+      color: #003366;
+  }
+  
+  /* Tabla de procesos */
+  .table-enhanced {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+  .table-enhanced thead {
+      background: linear-gradient(90deg, #00509E, #003366);
+  }
+  .table-enhanced th, .table-enhanced td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+      transition: background 0.3s ease;
+  }
+  .table-enhanced tr:hover td {
+      background: #f0f4f8;
+  }
+  
+  /* Botones de acción */
+  .btn-details {
+      display: inline-block;
+      background: #17a2b8;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.3s ease, transform 0.2s ease;
+      font-size: 0.9rem;
+  }
+  .btn-details:hover {
+      background: #138496;
+      transform: scale(1.03);
+  }
+  
+  .btn-register {
+      display: inline-block;
+      background: #28a745;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.3s ease, transform 0.2s ease;
+      font-weight: bold;
+      margin-top: 15px;
+  }
+  .btn-register:hover {
+      background: #218838;
+      transform: scale(1.03);
+  }
+  
+  .btn-back {
+      display: inline-block;
+      background: #6c757d;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.3s ease, transform 0.2s ease;
+      font-weight: bold;
+      margin-top: 20px;
+  }
+  .btn-back:hover {
+      background: #5a6268;
+      transform: scale(1.03);
+  }
+</style>
+{% endblock %}

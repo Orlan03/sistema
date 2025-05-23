@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Eliminar Proceso - {{ proceso.proceso }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="delete-card">
+        <h2>🗑 Eliminar Proceso</h2>
+        <p>¿Estás seguro de que deseas eliminar el proceso <strong>{{ proceso.proceso }}</strong>?</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">🗑 Eliminar</button>
+            <a href="{% url 'carpetas:ver_carpeta' proceso.carpeta.id %}" class="btn btn-secondary">⬅ Cancelar</a>
+        </form>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .delete-card {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    h2 {
+        color: #721c24;
+    }
+
+    p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .btn-danger {
+        background: #d9534f;
+        color: white;
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: #c9302c;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+</style>
+
+{% endblock %}

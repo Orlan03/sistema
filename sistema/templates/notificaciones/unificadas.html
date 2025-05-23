@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notificaciones - TACAE{% endblock %}
+
+{% block content %}
+<div class="container mt-4 notificaciones-container">
+  <div class="header-notificaciones">
+    <img src="{% static 'img/tacae.jpg' %}" alt="TACAE Logo" class="logo">
+    <h2>Notificaciones</h2>
+  </div>
+
+  {% if notificaciones %}
+  <ul class="list-group">
+    {% for noti in notificaciones %}
+      {% if noti.tipo == 'limite' and noti.proceso %}
+        <li class="list-group-item list-group-item-action notification-item
+                   {% if noti.leida %}read{% else %}unread{% endif %}">
+          <a href="{% url 'control_procesos:marcar_y_ver_carpeta' noti.id %}"
+             class="stretched-link text-decoration-none">
+            {{ noti.mensaje }}
+          </a>
+          <small class="d-block fecha">Creado: {{ noti.fecha_creacion|date:"d/m/Y H:i" }}</small>
+        </li>
+      {% else %}
+        {# … resto igual … #}
+      {% endif %}
+    {% endfor %}
+  </ul>
+  {% else %}
+    <p class="empty-message text-center">No tienes notificaciones nuevas.</p>
+  {% endif %}
+
+  <div class="text-center mt-3">
+    <a href="{% url 'home' %}" class="btn btn-secondary btn-back">Volver al inicio</a>
+  </div>
+</div>
+
+
+<style>
+  .notificaciones-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s ease;
+  }
+  .header-notificaciones {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header-notificaciones .logo {
+    max-width: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  .header-notificaciones h2 {
+    font-size: 2rem;
+    color: #003366;
+    margin: 0;
+  }
+  .list-group {
+    margin-top: 10px;
+  }
+  .notification-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    transition: background 0.3s ease;
+  }
+  .notification-item:hover {
+    background: #f0f4f8;
+  }
+  .notification-item.read {
+    background: #d4edda;
+    color: #155724;
+  }
+  .notification-item.unread {
+    background: #f8d7da;
+    color: #721c24;
+  }
+  .mensaje {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+  }
+  .fecha {
+    font-size: 0.85rem;
+    color: #555;
+  }
+  .btn-back {
+    font-weight: bold;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+  }
+  .btn-back:hover {
+    transform: scale(1.05);
+    background-color: #5a6268;
+  }
+  .empty-message {
+    font-size: 1.2rem;
+    color: #777;
+    margin-top: 20px;
+    text-align: center;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}

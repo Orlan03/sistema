@@ -1,0 +1,130 @@
+<form method="post">
+    {% csrf_token %}
+
+    <fieldset>
+        <legend>📂 <b>Seleccionar Subcarpeta:</b></legend>
+        <select name="carpeta_id" required>
+            <option value="">📁 Seleccione una subcarpeta</option>
+            {% for subcarpeta in subcarpetas %}
+                <optgroup label="📁 {{ subcarpeta.nombre }}">
+                    {% for subsub in subcarpeta.subcarpetas.all %}
+                        <option value="{{ subsub.id }}">↳ 📂 {{ subsub.nombre }}</option>
+                    {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Sorteo:</b></legend>
+        <input type="date" name="sorteo">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Proceso:</b></legend>
+        <input type="text" name="proceso" placeholder="Nombre del Proceso" required>
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Responsable:</b></legend>
+        <input type="text" name="responsable" value="Desconocido">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Calificación:</b></legend>
+        <input type="text" name="calificacion">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Actor:</b></legend>
+        <input type="text" name="actor" value="Desconocido">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Demandado:</b></legend>
+        <input type="text" name="demandado" value="Desconocido">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Valorr:</b></legend>
+        <input type="number" name="valor" step="0.01">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Posesión:</b></legend>
+        <input type="text" name="posesion">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Fecha cumplimiento:</b></legend>
+        <input type="date" name="fecha_cumplimiento">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Fecha límite:</b></legend>
+        <input type="date" name="fecha_limite">
+    </fieldset>
+
+    <fieldset>
+        <legend><b>Observaciones:</b></legend>
+        <textarea name="observaciones" rows="4"></textarea>
+    </fieldset>
+    
+
+    <button type="submit" class="btn btn-primary">Guardar Proceso</button>
+</form>
+
+<a href="{% url 'carpetas:ver_carpeta' carpeta_padre.id %}" class="btn btn-secondary">⬅ Volver</a>
+
+<style>
+    body {
+        background-color: #121212;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+    }
+
+    fieldset {
+        background: #1e1e1e;
+        border: 1px solid #444;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+    }
+
+    legend {
+        color: #ffcc00;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 8px;
+        background: #333;
+        border: 1px solid #555;
+        color: white;
+        border-radius: 4px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 10px;
+        text-align: center;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn:hover {
+        opacity: 0.8;
+    }
+</style>

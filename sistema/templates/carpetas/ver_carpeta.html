@@ -1,0 +1,778 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}📂 {{ carpeta.nombre }} - TACAE{% endblock %}
+
+{% block content %}
+
+<div class="container my-4">
+  <!-- Encabezado principal -->
+  <div class="bg-primary text-white p-3 rounded d-flex align-items-center mb-3">
+    <!-- Botón para volver a la carpeta padre o al listado principal -->
+    <a href="{% if carpeta.padre %}{% url 'carpetas:ver_carpeta' carpeta.padre.id %}{% else %}{% url 'carpetas:listar_carpetas' %}{% endif %}" class="me-3">
+      <img src="{% static 'img/volver_icon.png' %}" alt="Volver" style="width:40px;">
+    </a>
+    <img src="{% static 'img/tacae.jpg' %}" alt="Logo" class="rounded-circle me-3" style="width:60px;">
+    <div>
+      <h1 class="h4 mb-0">📁 {{ carpeta.nombre }}</h1>
+      <small>Gestiona carpetas y documentos</small>
+    </div>
+  </div>
+  
+  {# Mostrar botón para subir documento si la carpeta (o alguno de sus ancestros) pertenece a la rama "Informes Periciales Grupo TACAE" #}
+  {% if pertenece_informes %}
+    <div class="text-center mb-3">
+      <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#crearDocumentoModal">
+        <i class="fas fa-upload"></i> Subir Documento
+      </button>
+    </div>
+  {% endif %}
+  
+  <!-- Botones de acción generales -->
+  <div class="my-3 text-center">
+    {# Si el padre es "Procesos Pendientes", se muestra "Registrar Proceso" #}
+    {% if carpeta.padre and carpeta.padre.nombre == "Procesos Pendientes" %}
+      <a href="{% url 'procesos:registrar_proceso' carpeta.id %}" class="btn btn-outline-success">
+        <i class="fas fa-clipboard-list"></i> Registrar Proceso
+      </a>
+    {% endif %}
+    
+  
+    {% if carpeta.padre and carpeta.nombre|lower not in "claves,firmas,cuentas,preguntas,sistemas,bancos" and carpeta.nombre != "Control de Procesos" %}
+      <button class="btn btn-outline-light bg-secondary" data-bs-toggle="modal" data-bs-target="#crearSubcarpetaModal">
+        <i class="fas fa-folder-plus"></i> Crear Subcarpeta
+      </button>
+    {% elif "informes periciales grupo tacae" in carpeta.nombre|lower %}
+      <button class="btn btn-outline-light bg-secondary" data-bs-toggle="modal" data-bs-target="#crearSubcarpetaModal">
+        <i class="fas fa-folder-plus"></i> Crear Subcarpeta
+      </button>
+    {% elif carpeta.padre and "informes periciales grupo tacae" in carpeta.padre.nombre|lower %}
+      <button class="btn btn-outline-light bg-secondary" data-bs-toggle="modal" data-bs-target="#crearSubcarpetaModal">
+        <i class="fas fa-folder-plus"></i> Crear Subcarpeta
+      </button>
+    {% elif carpeta.padre and carpeta.padre.padre and "informes periciales grupo tacae" in carpeta.padre.padre.nombre|lower %}
+      <button class="btn btn-outline-light bg-secondary" data-bs-toggle="modal" data-bs-target="#crearSubcarpetaModal">
+        <i class="fas fa-folder-plus"></i> Crear Subcarpeta
+      </button>
+    {% endif %}
+  </div>
+  
+  {# Botones adicionales para "cuentas por cobrar" y "cxc tacae" #}
+  {% if carpeta.padre %}
+    {% if carpeta.padre.nombre|lower == "cuentas por cobrar" %}
+      <div class="text-center mb-3">
+        <a href="{% url 'procesos:registrar_cuenta_por_cobrar' carpeta.id %}" class="btn btn-outline-success">
+          <i class="fas fa-file-invoice-dollar"></i> Registrar Cuenta por Cobrar
+        </a>
+      </div>
+    {% elif carpeta.padre.nombre|lower == "cxc tacae" %}
+      <div class="text-center mb-3">
+        <a href="{% url 'control_procesos:crear_cxc' carpeta.id %}" class="btn btn-outline-success">
+          <i class="fas fa-file-alt"></i> Registrar nuevo CXC
+        </a>
+      </div>
+    {% endif %}
+  {% endif %}
+  
+  {% if carpeta.padre and carpeta.padre.nombre|lower == "cxc tacae" %}
+    <h4 class="mt-4">CXC</h4>
+    {% if cxcs %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover" id="tableCxc">
+          <thead class="table-dark">
+            <tr>
+              <th>Cliente</th>
+              <th>N° Factura</th>
+              <th>Fecha</th>
+              <th>Real</th>
+              <th>Observación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cxc in cxcs %}
+              <tr>
+                <td>{{ cxc.cliente }}</td>
+                <td>{{ cxc.numero_factura }}</td>
+                <td>{{ cxc.fecha}}</td>
+                <td>{{ cxc.real }}</td>
+                <td>{{ cxc.observacion }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_cxc' cxc.id %}" class="btn btn-info btn-sm">Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_cxc' cxc.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este registro CXC?');">Eliminar</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">No hay registros de CXC.</p>
+    {% endif %}
+  {% endif %}
+  
+  {# Se muestran subcarpetas y documentos en carpetas no restringidas #}
+  {% if carpeta.nombre|lower not in "claves,firmas,cuentas,preguntas,sistemas,bancos" %}
+    {% if not carpeta.padre %}
+      <!-- Subcarpetas -->
+      {% if subcarpetas %}
+        <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+          {% for sub in subcarpetas %}
+            <div class="col">
+              <div class="card text-center">
+                <div class="card-body p-2">
+                  <i class="fas fa-folder fa-2x text-warning mb-2"></i>
+                  <h6 class="card-title">{{ sub.nombre }}</h6>
+                  <a href="{% url 'carpetas:ver_carpeta' sub.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                  <a href="{% url 'carpetas:eliminar_carpeta' sub.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar esta subcarpeta?');">Eliminar</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <!-- Documentos -->
+      {% if documentos %}
+        <div class="list-group mb-4">
+          {% for doc in documentos %}
+            <a href="{{ doc.archivo.url }}" target="_blank" class="list-group-item list-group-item-action">
+              <i class="fas fa-file-alt me-2"></i>{{ doc.nombre }}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% else %}
+      {% if carpeta.padre.nombre != "Procesos Pendientes" %}
+        <!-- Subcarpetas -->
+        {% if subcarpetas %}
+          <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+            {% for sub in subcarpetas %}
+              <div class="col">
+                <div class="card text-center">
+                  <div class="card-body p-2">
+                    <i class="fas fa-folder fa-2x text-warning mb-2"></i>
+                    <h6 class="card-title">{{ sub.nombre }}</h6>
+                    <a href="{% url 'carpetas:ver_carpeta' sub.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                    <a href="{% url 'carpetas:eliminar_carpeta' sub.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar esta subcarpeta?');">Eliminar</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        
+        <!-- Documentos -->
+        {% if documentos %}
+          <div class="list-group mb-4">
+            {% for doc in documentos %}
+              <a href="{{ doc.archivo.url }}" target="_blank" class="list-group-item list-group-item-action">
+                <i class="fas fa-file-alt me-2"></i>{{ doc.nombre }}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  {% endif %}
+  {% if carpeta.padre and carpeta.padre.nombre == "Procesos Pendientes" %}
+  {% if procesos %}
+    <style>
+      /* Estilos para el select y alineación */
+      .estado-select { min-width: 140px; }
+      #tableProcesos td, #tableProcesos th { vertical-align: middle; }
+    </style>
+
+    <div class="mb-4">
+      <h2 class="h5 text-center">Procesos</h2>
+
+      {# --- Filtro por Estado --- #}
+      <div class="d-flex justify-content-end mb-2">
+        <label for="filterEstado" class="me-2 fw-bold">Filtrar por estado:</label>
+        <select id="filterEstado" class="form-select w-auto">
+          <option value="">Todos</option>
+          <option value="hecho">Hecho</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="faltan_datos">Faltan datos</option>
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table id="tableProcesos" class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Sorteo</th><th>Proceso</th><th>Responsable</th><th>Calificación</th>
+              <th>Actor</th><th>Demandado</th><th>Valor</th><th>Posesión</th>
+              <th>Fecha cumplimiento</th><th>Fecha límite</th>
+              <th>Observación</th><th style="width:160px;">Estado</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for proceso in procesos %}
+              <tr class="
+                {% if proceso.estado == 'pendiente' %}table-danger
+                {% elif proceso.estado == 'hecho' %}table-success
+                {% else %}table-warning{% endif %}">
+                <td>{{ proceso.sorteo }}</td>
+                <td>{{ proceso.proceso }}</td>
+                <td>{{ proceso.responsable }}</td>
+                <td>{{ proceso.calificacion }}</td>
+                <td>{{ proceso.actor }}</td>
+                <td>{{ proceso.demandado }}</td>
+                <td>{{ proceso.valor }}</td>
+                <td>{{ proceso.posesion }}</td>
+                <td>{{ proceso.fecha_cumplimiento }}</td>
+                <td>{{ proceso.fecha_limite }}</td>
+                <td>{{ proceso.observaciones }}</td>
+                <td>
+                  <select class="form-select estado-select estado-select"
+                          data-id="{{ proceso.id }}">
+                    <option value="hecho"     {% if proceso.estado == 'hecho'     %}selected{% endif %}>Hecho</option>
+                    <option value="pendiente" {% if proceso.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="faltan_datos" {% if proceso.estado == 'faltan_datos' %}selected{% endif %}>Faltan datos</option>
+                  </select>
+                </td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_proceso' proceso.id %}"
+                     class="btn btn-info btn-sm">Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_proceso' proceso.id %}"
+                     class="btn btn-danger btn-sm"
+                     onclick="return confirm('¿Eliminar este proceso?');">
+                    Eliminar
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <script>
+        // Cambia el color de la fila cuando modificas el select
+        document.querySelectorAll('.estado-select').forEach(sel => {
+          sel.addEventListener('change', function() {
+            const row = this.closest('tr');
+            row.classList.remove('table-success','table-danger','table-warning');
+            if (this.value === 'hecho')      row.classList.add('table-success');
+            else if (this.value === 'pendiente') row.classList.add('table-danger');
+            else                               row.classList.add('table-warning');
+            // Aquí podrías llamar a tu AJAX para guardar el cambio
+          });
+        });
+
+        // Filtrado global
+        document.getElementById('filterEstado').addEventListener('change', function() {
+          const filtro = this.value;
+          document.querySelectorAll('#tableProcesos tbody tr').forEach(row => {
+            const estado = row.querySelector('.estado-select').value;
+            row.style.display = (!filtro || estado === filtro) ? '' : 'none';
+          });
+        });
+      </script>
+    </div>
+  {% endif %}
+{% endif %}
+
+
+  {# Las demás secciones (cuentas, respuestas, sistemas, etc.) se mantienen sin cambios #}
+{% if carpeta.nombre == "Respuestas" %}
+  <style>
+    /* Centrar y ajustar ancho de la tabla */
+    #tableRespuestas {
+      table-layout: auto;
+      width: auto !important;
+      margin: 0 auto;
+    }
+    .estado-select { min-width: 140px; }
+    #tableRespuestas th,
+    #tableRespuestas td {
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+  </style>
+
+  <div class="mb-4 text-center">
+    <!-- 1) Botón para crear una nueva respuesta -->
+    <a href="{% url 'control_procesos:registrar_respuesta' carpeta.id %}"
+       class="btn btn-outline-success mb-3">
+      <i class="fas fa-clipboard-list"></i> Registrar Respuesta
+    </a>
+    <h2 class="h5">Respuestas</h2>
+  </div>
+
+  {# 2) Filtro global por estado #}
+  <div class="d-flex justify-content-end mb-2">
+    <label for="filterEstadoResp" class="me-2 fw-bold">Filtrar por estado:</label>
+    <select id="filterEstadoResp" class="form-select w-auto">
+      <option value="">Todos</option>
+      <option value="hecho">Hecho</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="faltan_datos">Faltan datos</option>
+    </select>
+  </div>
+
+  <div class="table-responsive">
+    <table id="tableRespuestas" class="table table-bordered table-hover mx-auto">
+      <thead class="table-dark">
+        <tr>
+          <th>Proceso</th>
+          <th>Fecha de respuesta</th>
+          <th>Calificación</th>
+          <th>Fecha de Cumplimiento</th>
+          <th>Observación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for resp in respuestas %}
+          <tr data-estado="{{ resp.estado }}"
+              class="
+                {% if resp.estado == 'pendiente'      %}table-danger
+                {% elif resp.estado == 'hecho'        %}table-success
+                {% else                              %}table-warning
+                {% endif %}
+              ">
+            <td>{{ resp.proceso }}</td>
+            <td>{{ resp.fecha_respuesta }}</td>
+            <td>{{ resp.calificacion }}</td>
+            <td>{{ resp.fecha_cumplimiento }}</td>
+            <td>{{ resp.observaciones }}</td>
+            <td>
+              <select class="form-select estado-select" data-id="{{ resp.id }}">
+                <option value="hecho"
+                  {% if resp.estado == 'hecho' %}selected{% endif %}>Hecho</option>
+                <option value="pendiente"
+                  {% if resp.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                <option value="faltan_datos"
+                  {% if resp.estado == 'faltan_datos' %}selected{% endif %}>Faltan datos</option>
+              </select>
+            </td>
+            <td>
+              <a href="{% url 'control_procesos:editar_respuesta' resp.id %}"
+                 class="btn btn-info btn-sm">Editar</a>
+              <a href="{% url 'control_procesos:eliminar_respuesta' resp.id %}"
+                 class="btn btn-danger btn-sm"
+                 onclick="return confirm('¿Eliminar esta respuesta?');">
+                Eliminar
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Filtrar filas por estado
+    document.getElementById('filterEstadoResp').addEventListener('change', function() {
+      const filtro = this.value;
+      document.querySelectorAll('#tableRespuestas tbody tr').forEach(row => {
+        row.style.display = (!filtro || row.dataset.estado === filtro) ? '' : 'none';
+      });
+    });
+
+    // Cambiar color de fila al modificar el select
+    document.querySelectorAll('.estado-select').forEach(sel => {
+      sel.addEventListener('change', function() {
+        const row = this.closest('tr');
+        row.classList.remove('table-success','table-danger','table-warning');
+        if (this.value === 'hecho')        row.classList.add('table-success');
+        else if (this.value === 'pendiente') row.classList.add('table-danger');
+        else                                 row.classList.add('table-warning');
+        // TODO: aquí dispara tu fetch o redirect para guardar el cambio en backend
+      });
+    });
+  </script>
+{% endif %}
+
+  {% if carpeta.nombre|lower == "sistema" %}
+    <div class="mb-4">
+      <h4>Sistemas</h4>
+      <a href="{% url 'control_procesos:crear_sistema' carpeta.id %}" class="btn btn-success mb-3">
+        ➕ Registrar Sistema
+      </a>
+      {% if carpeta.sistemasEspeciales.all %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Compañía</th>
+              <th>Usuario</th>
+              <th>Clave</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in carpeta.sistemasEspeciales.all %}
+              <tr>
+                <td>{{ item.compania }}</td>
+                <td>{{ item.usuario }}</td>
+                <td>{{ item.clave }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_sistema' item.id %}" class="btn btn-info btn-sm">✏ Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_sistema' item.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este registro?');">
+                    🗑 Eliminar
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">No hay registros de Sistemas.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if carpeta.nombre|lower == "sistema judicial" %}
+    <div class="mb-4">
+      <h4>Sistemas</h4>
+      <a href="{% url 'control_procesos:crear_sistema' carpeta.id %}" class="btn btn-success mb-3">
+        ➕ Registrar Sistema
+      </a>
+      {% if carpeta.sistemasEspeciales.all %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Compañía</th>
+              <th>Usuario</th>
+              <th>Clave</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in carpeta.sistemasEspeciales.all %}
+              <tr>
+                <td>{{ item.compania }}</td>
+                <td>{{ item.usuario }}</td>
+                <td>{{ item.clave }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_sistema' item.id %}" class="btn btn-info btn-sm">✏ Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_sistema' item.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este registro?');">
+                    🗑 Eliminar
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">No hay registros de Sistemas.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  {% if carpeta.nombre|lower == "cuentas" %}
+    <div class="mb-4">
+      <h4>Cuentas Especiales</h4>
+      <a href="{% url 'control_procesos:crear_cuenta_especial' carpeta.id %}" class="btn btn-success mb-3">
+        ➕ Registrar Cuenta
+      </a>
+      {% if carpeta.cuentasEspeciales.all %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Compañía</th>
+              <th>Institución Financiera</th>
+              <th>Número</th>
+              <th>RUC / CI</th>
+              <th>Usuario</th>
+              <th>Clave Web</th>
+              <th>Clave Cajero</th>
+              <th>Clave Trush</th>
+              <th>Clave SUT</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cta in carpeta.cuentasEspeciales.all %}
+              <tr>
+                <td>{{ cta.compania }}</td>
+                <td>{{ cta.institucion_financiera }}</td>
+                <td>{{ cta.numero }}</td>
+                <td>{{ cta.ruc_ci }}</td>
+                <td>{{ cta.usuario }}</td>
+                <td>{{ cta.clave_web }}</td>
+                <td>{{ cta.clave_cajero }}</td>
+                <td>{{ cta.clave_trush }}</td>
+                <td>{{ cta.clave_sut }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_cuenta_especial' cta.id %}" class="btn btn-info btn-sm">✏ Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_cuenta_especial' cta.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar esta cuenta?');">
+                    🗑 Eliminar
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">No hay cuentas registradas.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  {% if carpeta.nombre|lower == "claves" %}
+    <div class="mb-4">
+      <h4>Claves Sistemas</h4>
+      <a href="{% url 'control_procesos:crear_claves_sistemas' carpeta.id %}" class="btn btn-success mb-3">
+        ➕ Registrar Claves
+      </a>
+      {% if carpeta.clavesSistemas.all %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Compañía</th>
+              <th>Cantón</th>
+              <th>Email</th>
+              <th>Clave mail</th>
+              <th>Fecha Declaración</th>
+              <th>Declaración</th>
+              <th>RUC</th>
+              <th>Clave SRI</th>
+              <th>Clave Super</th>
+              <th>Clave IESS</th>
+              <th>Perito judicial</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in carpeta.clavesSistemas.all %}
+              <tr>
+                <td>{{ item.compania }}</td>
+                <td>{{ item.canton }}</td>
+                <td>{{ item.email }}</td>
+                <td>{{ item.clave_mail }}</td>
+                <td>{{ item.fecha_declaracion|date:"d/m/Y" }}</td>
+                <td>{{ item.declaracion }}</td>
+                <td>{{ item.ruc }}</td>
+                <td>{{ item.clave_sri }}</td>
+                <td>{{ item.clave_super }}</td>
+                <td>{{ item.clave_iess }}</td>
+                <td>{{ item.perito_judicial }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_claves_sistemas' item.id %}" class="btn btn-info btn-sm">✏ Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_claves_sistemas' item.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este registro?');">
+                    🗑 Eliminar
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">No hay registros de Claves Sistemas.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  {% if carpeta.nombre|lower == "firmas" %}
+    <div class="mb-4">
+      <h4>Firmas</h4>
+      <a href="{% url 'control_procesos:crear_firma' carpeta.id %}" class="btn btn-success mb-3">➕ Registrar Firma</a>
+      {% if carpeta.firmas.all %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Perito</th>
+              <th>RUC</th>
+              <th>Clave</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for firma in carpeta.firmas.all %}
+              <tr>
+                <td>{{ firma.perito }}</td>
+                <td>{{ firma.ruc }}</td>
+                <td>{{ firma.clave }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_firma' firma.id %}" class="btn btn-info btn-sm action-btn">✏ Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_firma' firma.id %}" class="btn btn-danger btn-sm action-btn" onclick="return confirm('¿Estás seguro de eliminar esta firma?');">
+                    🗑 Eliminar
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">No hay firmas registradas.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  {% if carpeta.nombre|lower == "bancos" %}
+    <div class="mb-4">
+      <h4>🏦 Información de Bancos</h4>
+      <a href="{% url 'control_procesos:crear_banco' carpeta.id %}" class="btn btn-success mb-3">
+        ➕ Registrar Banco
+      </a>
+      {% if carpeta.bancos.all %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Compañía</th>
+              <th>Institución Financiera</th>
+              <th>Número</th>
+              <th>RUC/CI</th>
+              <th>Usuario</th>
+              <th>Clave Web</th>
+              <th>Saldo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for banco in carpeta.bancos.all %}
+              <tr>
+                <td>{{ banco.compania }}</td>
+                <td>{{ banco.institucion_financiera }}</td>
+                <td>{{ banco.numero }}</td>
+                <td>{{ banco.ruc_ci }}</td>
+                <td>{{ banco.usuario }}</td>
+                <td>{{ banco.clave_web }}</td>
+                <td>${{ banco.saldo }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_banco' banco.id %}" class="btn btn-info btn-sm">✏ Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_banco' banco.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar este banco?');">🗑 Eliminar</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">📂 No hay bancos registrados.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  {% if carpeta.nombre|lower == "preguntas" %}
+    <div class="mb-4">
+      <h4>Preguntas y Respuestas</h4>
+      <a href="{% url 'control_procesos:crear_pregunta' carpeta.id %}" class="btn btn-success mb-3">
+        ➕ Registrar Pregunta
+      </a>
+      {% if carpeta.preguntasEspeciales.all %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Pregunta</th>
+              <th>Respuesta</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for preg in carpeta.preguntasEspeciales.all %}
+              <tr>
+                <td>{{ preg.pregunta }}</td>
+                <td>{{ preg.respuesta }}</td>
+                <td>
+                  <a href="{% url 'control_procesos:editar_pregunta' preg.id %}" class="btn btn-info btn-sm">✏ Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_pregunta' preg.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta pregunta?');">
+                    🗑 Eliminar
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">No hay preguntas registradas.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  <!-- Botones de Navegación -->
+  <div class="mt-3 text-center">
+    <a href="{% if carpeta.padre %}{% url 'carpetas:ver_carpeta' carpeta.padre.id %}{% else %}{% url 'carpetas:listar_carpetas' %}{% endif %}" class="btn btn-outline-secondary action-btn">
+      ⬅ Volver carpeta anterior
+    </a>
+    <a href="{% url 'home' %}" class="btn btn-outline-primary action-btn">🏠 Inicio</a>
+    <a href="{% url 'carpetas:listar_carpetas' %}" class="btn btn-outline-info action-btn">📂 Carpeta Principal</a>
+  </div>
+</div>  <!-- Fin del container -->
+
+<!-- Modal para Crear Subcarpeta -->
+<div class="modal fade" id="crearSubcarpetaModal" tabindex="-1" aria-labelledby="crearSubcarpetaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'carpetas:crear_subcarpeta' carpeta.id %}">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="crearSubcarpetaModalLabel">Crear Subcarpeta</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="nombreSubcarpeta" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombreSubcarpeta" name="nombre" required>
+          </div>
+          <div class="mb-3">
+            <label for="descripcionSubcarpeta" class="form-label">Descripción (opcional)</label>
+            <textarea class="form-control" id="descripcionSubcarpeta" name="descripcion"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Modal para Subir Documento: se muestra SOLO si pertenece_informes es True #}
+{% if pertenece_informes %}
+  <div class="modal fade" id="crearDocumentoModal" tabindex="-1" aria-labelledby="crearDocumentoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form method="POST" action="{% url 'carpetas:subir_documento' carpeta.id %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="crearDocumentoModalLabel">Subir Documento</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="nombreDocumento" class="form-label">Nombre del Documento</label>
+              <input type="text" class="form-control" id="nombreDocumento" name="nombre" required>
+            </div>
+            <div class="mb-3">
+              <label for="archivoDocumento" class="form-label">Archivo</label>
+              <input type="file" class="form-control" id="archivoDocumento" name="archivo" required>
+            </div>
+            <div class="mb-3">
+              <label for="descripcionDocumento" class="form-label">Descripción (opcional)</label>
+              <textarea class="form-control" id="descripcionDocumento" name="descripcion"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Subir</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Script para filtros (si se usan en tus tablas) -->
+<script>
+  function setupFilter(inputId, tableId) {
+    document.getElementById(inputId)?.addEventListener('keyup', function () {
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('#' + tableId + ' tbody tr').forEach(r => {
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  }
+  setupFilter('searchProcesos', 'tableProcesos');
+  setupFilter('searchCuentas', 'tableCuentas');
+  setupFilter('searchCxc', 'tableCxc');
+</script>
+
+<!-- Recursos Externos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% endblock %}

@@ -1,0 +1,88 @@
+<!-- Ejemplo de tabla con diseño personalizado -->
+<div class="table-responsive">
+    <table class="table custom-table">
+      <thead>
+        <tr>
+          <th>📅 Sorteo</th>
+          <th>📄 Proceso</th>
+          <th>👤 Responsable</th>
+          <th>🏢 Actor</th>
+          <th>⚖️ Demandado</th>
+          <th>💰 Valor</th>
+          <th>🏡 Posesión</th>
+          <th>📝 Calificación</th>
+          <th>📅 Fecha Cumplimiento</th>
+          <th>📅 Fecha Límite</th>
+          <th>📝 Observaciones</th>
+          <th>🗂️ Carpeta</th>
+          <th>🔍 Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for proceso in procesos %}
+        <tr>
+          <td>{{ proceso.sorteo|date:"d/m/Y"|default:"-" }}</td>
+          <td>
+            <a href="{% url 'carpetas:ver_carpeta' proceso.carpeta.id %}" style="color: inherit; text-decoration: none;">
+              {{ proceso.proceso }}
+            </a>
+          </td>
+          <td>{{ proceso.responsable }}</td>
+          <td>{{ proceso.actor|default:"-" }}</td>
+          <td>{{ proceso.demandado|default:"-" }}</td>
+          <td>${{ proceso.valor|default:"0.00" }}</td>
+          <td>{{ proceso.posesion|default:"-" }}</td>
+          <td>{{ proceso.calificacion|default:"-" }}</td>
+          <td>{{ proceso.fecha_cumplimiento|date:"d/m/Y"|default:"-" }}</td>
+          <td>{{ proceso.fecha_limite|date:"d/m/Y"|default:"-" }}</td>
+          <td>{{ proceso.observaciones|default:"-" }}</td>
+          <td>{{ proceso.carpeta.nombre }}</td>
+          <td>
+            <a href="{% url 'procesos:editar_proceso' proceso.id %}" class="btn btn-warning btn-sm">✏️ Editar</a>
+            <a href="{% url 'procesos:eliminar_proceso' proceso.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este proceso?')">🗑 Eliminar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="13">🚫 No hay procesos registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Estilos personalizados para la tabla -->
+  <style>
+    .custom-table {
+      background-color: #2a2a2a;
+      color: #ddd;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .custom-table thead tr {
+      background: linear-gradient(90deg, #003366, #00509E);
+    }
+    .custom-table thead th {
+      color: #fff;
+      padding: 12px;
+      font-weight: bold;
+      border: none;
+    }
+    .custom-table tbody td {
+      padding: 12px;
+      border-top: 1px solid #444;
+    }
+    .custom-table tbody tr:hover {
+      background-color: #3a3a3a;
+    }
+    .custom-table a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .custom-table a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  

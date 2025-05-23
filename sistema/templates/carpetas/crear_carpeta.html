@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crear Carpeta - TACAE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>📂 Crear Nueva Carpeta</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" class="form-container">
+                {% csrf_token %}
+                <label for="id_nombre">Nombre de la Carpeta:</label>
+                {{ form.nombre }}
+                
+                <button type="submit" class="btn btn-success">✅ Crear Carpeta</button>
+            </form>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'carpetas:listar_carpetas' %}" class="btn btn-secondary">⬅ Volver</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: #0277bd;
+        color: white;
+        padding: 15px;
+        text-align: center;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        text-align: center;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: 0.3s;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+    .card-footer {
+        text-align: center;
+        padding: 10px;
+        background: #f8f9fa;
+    }
+</style>
+
+{% endblock %}

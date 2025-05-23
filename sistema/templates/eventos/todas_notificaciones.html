@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Todas las Notificaciones - TACAE{% endblock %}
+
+{% block content %}
+<div class="notificaciones-page">
+  <div class="header-notificaciones">
+    <img src="{% static 'img/tacae.jpg' %}" alt="TACAE Logo" class="logo">
+    <h2>Todas las Notificaciones</h2>
+  </div>
+  <div class="notificaciones-container">
+    {% if notificaciones %}
+      <ul class="notificaciones-list">
+        {% for noti in notificaciones %}
+          <li class="notificacion-item {% if noti.leida %}leida{% else %}no-leida{% endif %}">
+            <p class="mensaje">{{ noti.mensaje }}</p>
+            <small class="fecha">Creado: {{ noti.fecha_creacion|date:"d/m/Y H:i" }}</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-message">No tienes notificaciones.</p>
+    {% endif %}
+    <div class="botones">
+      <a href="{% url 'home' %}" class="btn btn-back">Volver al inicio</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Contenedor principal */
+  .notificaciones-page {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s ease;
+    font-family: Arial, sans-serif;
+  }
+  /* Encabezado con logo */
+  .header-notificaciones {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header-notificaciones .logo {
+    max-width: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  .header-notificaciones h2 {
+    font-size: 2rem;
+    color: #003366;
+    margin: 0;
+  }
+  /* Contenedor de notificaciones */
+  .notificaciones-container {
+    padding: 10px;
+  }
+  .notificaciones-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .notificacion-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+    transition: background 0.3s ease;
+  }
+  .notificacion-item:hover {
+    background: #f0f4f8;
+  }
+  /* Estilos para notificaciones leídas y no leídas */
+  .notificacion-item.leida {
+    background: #d4edda;
+    color: #155724;
+  }
+  .notificacion-item.no-leida {
+    background: #f8d7da;
+    color: #721c24;
+  }
+  .mensaje {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+  }
+  .fecha {
+    font-size: 0.85rem;
+    color: #555;
+  }
+  /* Botones */
+  .botones {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .btn-back {
+    display: inline-block;
+    background: #0277bd;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+  .btn-back:hover {
+    background: #01579b;
+    transform: scale(1.05);
+  }
+  .empty-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #777;
+    margin-top: 20px;
+  }
+  /* Animación de entrada */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}

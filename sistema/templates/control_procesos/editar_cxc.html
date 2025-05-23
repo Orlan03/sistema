@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Editar CXC - TACAE{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg">
+    <div class="card-header bg-info text-white">
+      <h2 class="mb-0">Editar CXC</h2>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success btn-lg transition-btn">Guardar cambios</button>
+      </form>
+      <hr>
+      <a href="{% url 'carpetas:ver_carpeta' carpeta_id=cxc.carpeta.id %}" class="btn btn-outline-secondary transition-btn mt-3">
+        Cancelar
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos adicionales para efectos -->
+<style>
+  .transition-btn {
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  .transition-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+{% endblock %}
