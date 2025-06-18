@@ -6,17 +6,34 @@
 
 <div class="container my-4">
   <!-- Encabezado principal -->
-  <div class="bg-primary text-white p-3 rounded d-flex align-items-center mb-3">
-    <!-- Botón para volver a la carpeta padre o al listado principal -->
-    <a href="{% if carpeta.padre %}{% url 'carpetas:ver_carpeta' carpeta.padre.id %}{% else %}{% url 'carpetas:listar_carpetas' %}{% endif %}" class="me-3">
-      <img src="{% static 'img/volver_icon.png' %}" alt="Volver" style="width:40px;">
-    </a>
-    <img src="{% static 'img/tacae.jpg' %}" alt="Logo" class="rounded-circle me-3" style="width:60px;">
-    <div>
-      <h1 class="h4 mb-0">📁 {{ carpeta.nombre }}</h1>
-      <small>Gestiona carpetas y documentos</small>
+  <div class="bg-primary text-white p-3 rounded d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center">
+      <a href="{% if carpeta.padre %}{% url 'carpetas:ver_carpeta' carpeta.padre.id %}{% else %}{% url 'carpetas:listar_carpetas' %}{% endif %}" class="me-3">
+        <img src="{% static 'img/volver_icon.png' %}" alt="Volver" style="width:40px;">
+      </a>
+      <img src="{% static 'img/tacae.jpg' %}" alt="Logo" class="rounded-circle me-3" style="width:60px;">
+      <div>
+        <h1 class="h4 mb-0">📁 {{ carpeta.nombre }}</h1>
+        <small>Gestiona carpetas y documentos</small>
+      </div>
     </div>
+
+    {% if anterior or siguiente %}
+      <div class="d-flex">
+        {% if anterior %}
+          <a href="{% url 'carpetas:ver_carpeta' anterior.id %}" class="btn btn-outline-light me-2">
+            ⬅ Carpeta anterior
+          </a>
+        {% endif %}
+        {% if siguiente %}
+          <a href="{% url 'carpetas:ver_carpeta' siguiente.id %}" class="btn btn-outline-light">
+            ➡ Siguiente carpeta
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
+
   
   {# Mostrar botón para subir documento si la carpeta (o alguno de sus ancestros) pertenece a la rama "Informes Periciales Grupo TACAE" #}
   {% if pertenece_informes %}
@@ -24,20 +41,21 @@
       <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#crearDocumentoModal">
         <i class="fas fa-upload"></i> Subir Documento
       </button>
+      
     </div>
   {% endif %}
   
   <!-- Botones de acción generales -->
-  <div class="my-3 text-center">
-    {# Si el padre es "Procesos Pendientes", se muestra "Registrar Proceso" #}
+  <!-- Botón de "Crear Subcarpeta" -->
+ <div class="my-3 text-center">
     {% if carpeta.padre and carpeta.padre.nombre == "Procesos Pendientes" %}
       <a href="{% url 'procesos:registrar_proceso' carpeta.id %}" class="btn btn-outline-success">
         <i class="fas fa-clipboard-list"></i> Registrar Proceso
       </a>
     {% endif %}
-    
-  
-    {% if carpeta.padre and carpeta.nombre|lower not in "claves,firmas,cuentas,preguntas,sistemas,bancos" and carpeta.nombre != "Control de Procesos" %}
+
+    {# Botón crear subcarpeta, con condiciones #}
+    {% if carpeta.padre and carpeta.padre.nombre != "Respuestas" and carpeta.nombre|lower not in "claves,firmas,cuentas,preguntas,sistemas,bancos" and carpeta.nombre != "Control de Procesos" %}
       <button class="btn btn-outline-light bg-secondary" data-bs-toggle="modal" data-bs-target="#crearSubcarpetaModal">
         <i class="fas fa-folder-plus"></i> Crear Subcarpeta
       </button>
@@ -54,7 +72,18 @@
         <i class="fas fa-folder-plus"></i> Crear Subcarpeta
       </button>
     {% endif %}
+
+    {# Mostrar botón Registrar Respuesta si estamos en o dentro de "Respuestas" #}
+    {% if carpeta.nombre == "Respuestas" or carpeta.padre and carpeta.padre.nombre == "Respuestas" %}
+
+
+      <a href="{% url 'procesos:registrar_respuesta' carpeta.id %}" class="btn btn-outline-success mt-2">
+        <i class="fas fa-clipboard-list"></i> Registrar Respuesta
+      </a>
+    {% endif %}
   </div>
+
+
   
   {# Botones adicionales para "cuentas por cobrar" y "cxc tacae" #}
   {% if carpeta.padre %}
@@ -123,7 +152,9 @@
                   <i class="fas fa-folder fa-2x text-warning mb-2"></i>
                   <h6 class="card-title">{{ sub.nombre }}</h6>
                   <a href="{% url 'carpetas:ver_carpeta' sub.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                  
                   <a href="{% url 'carpetas:eliminar_carpeta' sub.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar esta subcarpeta?');">Eliminar</a>
+                
                 </div>
               </div>
             </div>
@@ -132,15 +163,7 @@
       {% endif %}
       
       <!-- Documentos -->
-      {% if documentos %}
-        <div class="list-group mb-4">
-          {% for doc in documentos %}
-            <a href="{{ doc.archivo.url }}" target="_blank" class="list-group-item list-group-item-action">
-              <i class="fas fa-file-alt me-2"></i>{{ doc.nombre }}
-            </a>
-          {% endfor %}
-        </div>
-      {% endif %}
+
     {% else %}
       {% if carpeta.padre.nombre != "Procesos Pendientes" %}
         <!-- Subcarpetas -->
@@ -162,30 +185,75 @@
         {% endif %}
         
         <!-- Documentos -->
-        {% if documentos %}
-          <div class="list-group mb-4">
-            {% for doc in documentos %}
-              <a href="{{ doc.archivo.url }}" target="_blank" class="list-group-item list-group-item-action">
-                <i class="fas fa-file-alt me-2"></i>{{ doc.nombre }}
-              </a>
-            {% endfor %}
+      {% for doc in documentos %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+          <!-- Sección izquierda: ícono, nombre, metadatos -->
+          <div class="d-flex align-items-center">
+            {% with doc.archivo.name|lower as filename %}
+              {% if ".pdf" in filename %}
+                <img src="{% static 'icons/pdf.jpg' %}" alt="PDF" width="20" class="me-2">
+              {% elif ".docx" in filename or ".doc" in filename %}
+                <img src="{% static 'icons/word.jpg' %}" alt="Word" width="20" class="me-2">
+              {% elif ".jpg" in filename or ".jpeg" in filename or ".png" in filename %}
+                <img src="{% static 'icons/imagenes.png' %}" alt="Imagen" width="20" class="me-2">
+              {% elif ".xls" in filename or ".xlsx" in filename %}
+                <img src="{% static 'icons/excel.jpg' %}" alt="Excel" width="20" class="me-2">
+              {% elif ".zip" in filename %}
+                <img src="{% static 'icons/zip.jpg' %}" alt="ZIP" width="20" class="me-2">
+              {% elif ".txt" in filename %}
+                <img src="{% static 'icons/txt.jpg' %}" alt="TXT" width="20" class="me-2">
+              {% else %}
+                <img src="{% static 'icons/archivo.png' %}" alt="Archivo" width="20" class="me-2">
+              {% endif %}
+            {% endwith %}
+
+            <div>
+              <a href="{{ doc.archivo.url }}" target="_blank">{{ doc.nombre }}</a><br>
+              <small class="text-muted">
+                📅 {{ doc.fecha_subida|date:"d M Y H:i" }} |
+                📦 {{ doc.archivo.size|filesizeformat }}
+              </small>
+            </div>
           </div>
-        {% endif %}
+
+          <!-- Sección derecha: botones -->
+          <div>
+            <a href="{% url 'carpetas:editar_documento' doc.id %}" class="btn btn-sm btn-info me-1" title="Editar">
+              <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'carpetas:eliminar_documento' doc.id %}" class="btn btn-sm btn-danger" title="Eliminar"
+              onclick="return confirm('¿Eliminar este documento?');">
+              <i class="fas fa-trash-alt"></i>
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+
       {% endif %}
     {% endif %}
   {% endif %}
-  {% if carpeta.padre and carpeta.padre.nombre == "Procesos Pendientes" %}
+{% if carpeta.padre and carpeta.padre.nombre == "Procesos Pendientes" %}
   {% if procesos %}
     <style>
-      /* Estilos para el select y alineación */
       .estado-select { min-width: 140px; }
       #tableProcesos td, #tableProcesos th { vertical-align: middle; }
+      #searchInput {
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        margin-bottom: 0.5rem;
+      }
     </style>
 
     <div class="mb-4">
       <h2 class="h5 text-center">Procesos</h2>
 
-      {# --- Filtro por Estado --- #}
+      <!-- Buscador global -->
+      <div class="d-flex justify-content-end mb-2">
+        <input id="searchInput" type="text" class="form-control w-auto" placeholder="🔍 Buscar...">
+      </div>
+
+      <!-- Filtro por Estado -->
       <div class="d-flex justify-content-end mb-2">
         <label for="filterEstado" class="me-2 fw-bold">Filtrar por estado:</label>
         <select id="filterEstado" class="form-select w-auto">
@@ -201,44 +269,35 @@
           <thead class="table-dark">
             <tr>
               <th>Sorteo</th><th>Proceso</th><th>Responsable</th><th>Calificación</th>
-              <th>Actor</th><th>Demandado</th><th>Valor</th><th>Posesión</th>
+              <th>Actor</th><th>Valor</th><th>Posesión</th>
               <th>Fecha cumplimiento</th><th>Fecha límite</th>
               <th>Observación</th><th style="width:160px;">Estado</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {% for proceso in procesos %}
-              <tr class="
-                {% if proceso.estado == 'pendiente' %}table-danger
-                {% elif proceso.estado == 'hecho' %}table-success
-                {% else %}table-warning{% endif %}">
+              <tr class="{% if proceso.estado == 'pendiente' %}table-danger{% elif proceso.estado == 'hecho' %}table-success{% else %}table-warning{% endif %}">
                 <td>{{ proceso.sorteo }}</td>
                 <td>{{ proceso.proceso }}</td>
                 <td>{{ proceso.responsable }}</td>
                 <td>{{ proceso.calificacion }}</td>
                 <td>{{ proceso.actor }}</td>
-                <td>{{ proceso.demandado }}</td>
+               
                 <td>{{ proceso.valor }}</td>
                 <td>{{ proceso.posesion }}</td>
-                <td>{{ proceso.fecha_cumplimiento }}</td>
+                <td data-fecha="{{ proceso.fecha_cumplimiento }}">{{ proceso.fecha_cumplimiento }}</td>
                 <td>{{ proceso.fecha_limite }}</td>
                 <td>{{ proceso.observaciones }}</td>
                 <td>
-                  <select class="form-select estado-select estado-select"
-                          data-id="{{ proceso.id }}">
-                    <option value="hecho"     {% if proceso.estado == 'hecho'     %}selected{% endif %}>Hecho</option>
+                  <select class="form-select estado-select" data-id="{{ proceso.id }}">
+                    <option value="hecho" {% if proceso.estado == 'hecho' %}selected{% endif %}>Hecho</option>
                     <option value="pendiente" {% if proceso.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
                     <option value="faltan_datos" {% if proceso.estado == 'faltan_datos' %}selected{% endif %}>Faltan datos</option>
                   </select>
                 </td>
                 <td>
-                  <a href="{% url 'control_procesos:editar_proceso' proceso.id %}"
-                     class="btn btn-info btn-sm">Editar</a>
-                  <a href="{% url 'control_procesos:eliminar_proceso' proceso.id %}"
-                     class="btn btn-danger btn-sm"
-                     onclick="return confirm('¿Eliminar este proceso?');">
-                    Eliminar
-                  </a>
+                  <a href="{% url 'control_procesos:editar_proceso' proceso.id %}" class="btn btn-info btn-sm">Editar</a>
+                  <a href="{% url 'control_procesos:eliminar_proceso' proceso.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este proceso?');">Eliminar</a>
                 </td>
               </tr>
             {% endfor %}
@@ -247,144 +306,197 @@
       </div>
 
       <script>
-        // Cambia el color de la fila cuando modificas el select
-        document.querySelectorAll('.estado-select').forEach(sel => {
-          sel.addEventListener('change', function() {
-            const row = this.closest('tr');
-            row.classList.remove('table-success','table-danger','table-warning');
-            if (this.value === 'hecho')      row.classList.add('table-success');
-            else if (this.value === 'pendiente') row.classList.add('table-danger');
-            else                               row.classList.add('table-warning');
-            // Aquí podrías llamar a tu AJAX para guardar el cambio
+        // Filtro por Estado
+        document.getElementById('filterEstado').addEventListener('change', function () {
+          const filtro = this.value;
+          document.querySelectorAll('#tableProcesos tbody tr').forEach(row => {
+            const select = row.querySelector('.estado-select');
+            const estadoActual = select ? select.options[select.selectedIndex].value : '';
+            row.style.display = (!filtro || estadoActual === filtro) ? '' : 'none';
           });
         });
 
-        // Filtrado global
-        document.getElementById('filterEstado').addEventListener('change', function() {
-          const filtro = this.value;
+        // Filtro global (buscador)
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+          const query = this.value.toLowerCase();
           document.querySelectorAll('#tableProcesos tbody tr').forEach(row => {
-            const estado = row.querySelector('.estado-select').value;
-            row.style.display = (!filtro || estado === filtro) ? '' : 'none';
+            row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
           });
         });
+
+        // Cambiar estado y redirigir
+        document.querySelectorAll('.estado-select').forEach(sel => {
+          sel.addEventListener('change', function () {
+            const procId = this.dataset.id;
+            const estado = this.value;
+            window.location.href = "{% url 'carpetas:ver_carpeta' carpeta.id %}" + "?change_proc=" + procId + "&estado=" + estado;
+          });
+        });
+
+        // Ordenar por fecha de cumplimiento (índice 8)
+        window.addEventListener('load', () => {
+          const rows = Array.from(document.querySelectorAll('#tableProcesos tbody tr'));
+          rows.sort((a, b) => {
+            const fechaA = parseFecha(a.children[8].textContent.trim());
+            const fechaB = parseFecha(b.children[8].textContent.trim());
+            return fechaB - fechaA;
+          });
+          const tbody = document.querySelector('#tableProcesos tbody');
+          tbody.innerHTML = '';
+          rows.forEach(r => tbody.appendChild(r));
+        });
+
+        function parseFecha(fechaTexto) {
+          const meses = {
+            'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+            'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
+            'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
+          };
+          const partes = fechaTexto.split(' de ');
+          if (partes.length === 3) {
+            const dia = partes[0].padStart(2, '0');
+            const mes = meses[partes[1].toLowerCase()];
+            const anio = partes[2];
+            return new Date(`${anio}-${mes}-${dia}`);
+          }
+          return new Date('1900-01-01');
+        }
       </script>
     </div>
   {% endif %}
 {% endif %}
 
 
-  {# Las demás secciones (cuentas, respuestas, sistemas, etc.) se mantienen sin cambios #}
-{% if carpeta.nombre == "Respuestas" %}
-  <style>
-    /* Centrar y ajustar ancho de la tabla */
-    #tableRespuestas {
-      table-layout: auto;
-      width: auto !important;
-      margin: 0 auto;
-    }
-    .estado-select { min-width: 140px; }
-    #tableRespuestas th,
-    #tableRespuestas td {
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-  </style>
 
-  <div class="mb-4 text-center">
-    <!-- 1) Botón para crear una nueva respuesta -->
-    <a href="{% url 'control_procesos:registrar_respuesta' carpeta.id %}"
-       class="btn btn-outline-success mb-3">
+  {# Las demás secciones (cuentas, respuestas, sistemas, etc.) se mantienen sin cambios #}
+ {% if carpeta.padre and carpeta.padre.nombre|lower == "cuentas por cobrar" %}
+
+    <h4 class="mt-4">📋 Cuentas por Cobrar</h4>
+
+    <!-- Filtros -->
+    <form method="get" class="mb-3 d-flex" style="gap: 10px;">
+      <label for="responsable">Filtrar por responsable:</label>
+      <select name="responsable" onchange="this.form.submit()">
+        <option value="">-- Todos --</option>
+        {% for user in responsables %}
+          <option value="{{ user.id }}" {% if filtro_responsable == user.id|stringformat:"s" %}selected{% endif %}>
+            {{ user.get_full_name|default:user.username }}
+          </option>
+        {% endfor %}
+      </select>
+      <p>Total responsables: {{ responsables|length }}</p>
+      <ul>
+        {% for r in responsables %}
+          <li>{{ r.username }}</li>
+        {% endfor %}
+      </ul>
+    </form>
+
+
+      {% for user in responsables %}
+        <p>{{ user.username }}</p>
+      {% endfor %}
+
+    {% if cuentas %}
+      <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Fecha</th>
+            <th>Proceso</th>
+            <th>Responsable</th>
+            <th>Actor</th>
+            <th>Valor</th>
+            <th>Cobrado</th>
+            <th>Saldo</th>
+            <th>Observación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cuenta in cuentas %}
+            <tr {% if cuenta.saldo == 0 %}class="table-success"{% endif %}>
+              <td>{{ cuenta.fecha|date:"d/m/Y" }}</td>
+              <td>{{ cuenta.proceso.proceso }}</td>
+              <td>
+                {% if cuenta.proceso.responsable %}
+                  {{ cuenta.proceso.responsable.get_full_name|default:cuenta.proceso.responsable.username }}
+                {% else %}
+                  <em>No asignado</em>
+                {% endif %}
+              </td>
+              <td>{{ cuenta.proceso.actor }}</td>
+              <td>${{ cuenta.proceso.valor }}</td>
+              <td>${{ cuenta.cobro|default:"0.00" }}</td>
+              <td>${{ cuenta.saldo|default:"0.00" }}</td>
+              <td>{{ cuenta.observacion|default:"-" }}</td>
+              <td>
+                <a href="{% url 'control_procesos:editar_cuenta_por_cobrar' cuenta.id %}" class="btn btn-info btn-sm">Editar</a>
+                <a href="{% url 'control_procesos:eliminar_cuenta_por_cobrar' cuenta.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta cuenta?');">Eliminar</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="table-success">
+            <td colspan="5"><strong>Totales:</strong></td>
+            <td><strong>${{ total_cobrado }}</strong></td>  
+            <td><strong>${{ total_saldo }}</strong></td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    {% else %}
+      <p class="text-muted">🚫 No hay cuentas por cobrar que coincidan con los filtros.</p>
+    {% endif %}
+
+  {% endif %}
+
+  
+ {% if carpeta.padre and carpeta.padre.nombre == "Respuestas" %}
+  <!-- Botón para registrar una respuesta -->
+  <div class="text-center mb-3">
+    <a href="{% url 'procesos:registrar_respuesta' carpeta.id %}" class="btn btn-outline-success">
       <i class="fas fa-clipboard-list"></i> Registrar Respuesta
     </a>
-    <h2 class="h5">Respuestas</h2>
   </div>
-
-  {# 2) Filtro global por estado #}
-  <div class="d-flex justify-content-end mb-2">
-    <label for="filterEstadoResp" class="me-2 fw-bold">Filtrar por estado:</label>
-    <select id="filterEstadoResp" class="form-select w-auto">
-      <option value="">Todos</option>
-      <option value="hecho">Hecho</option>
-      <option value="pendiente">Pendiente</option>
-      <option value="faltan_datos">Faltan datos</option>
-    </select>
-  </div>
-
-  <div class="table-responsive">
-    <table id="tableRespuestas" class="table table-bordered table-hover mx-auto">
-      <thead class="table-dark">
-        <tr>
-          <th>Proceso</th>
-          <th>Fecha de respuesta</th>
-          <th>Calificación</th>
-          <th>Fecha de Cumplimiento</th>
-          <th>Observación</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for resp in respuestas %}
-          <tr data-estado="{{ resp.estado }}"
-              class="
-                {% if resp.estado == 'pendiente'      %}table-danger
-                {% elif resp.estado == 'hecho'        %}table-success
-                {% else                              %}table-warning
-                {% endif %}
-              ">
-            <td>{{ resp.proceso }}</td>
-            <td>{{ resp.fecha_respuesta }}</td>
-            <td>{{ resp.calificacion }}</td>
-            <td>{{ resp.fecha_cumplimiento }}</td>
-            <td>{{ resp.observaciones }}</td>
-            <td>
-              <select class="form-select estado-select" data-id="{{ resp.id }}">
-                <option value="hecho"
-                  {% if resp.estado == 'hecho' %}selected{% endif %}>Hecho</option>
-                <option value="pendiente"
-                  {% if resp.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                <option value="faltan_datos"
-                  {% if resp.estado == 'faltan_datos' %}selected{% endif %}>Faltan datos</option>
-              </select>
-            </td>
-            <td>
-              <a href="{% url 'control_procesos:editar_respuesta' resp.id %}"
-                 class="btn btn-info btn-sm">Editar</a>
-              <a href="{% url 'control_procesos:eliminar_respuesta' resp.id %}"
-                 class="btn btn-danger btn-sm"
-                 onclick="return confirm('¿Eliminar esta respuesta?');">
-                Eliminar
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <script>
-    // Filtrar filas por estado
-    document.getElementById('filterEstadoResp').addEventListener('change', function() {
-      const filtro = this.value;
-      document.querySelectorAll('#tableRespuestas tbody tr').forEach(row => {
-        row.style.display = (!filtro || row.dataset.estado === filtro) ? '' : 'none';
-      });
-    });
-
-    // Cambiar color de fila al modificar el select
-    document.querySelectorAll('.estado-select').forEach(sel => {
-      sel.addEventListener('change', function() {
-        const row = this.closest('tr');
-        row.classList.remove('table-success','table-danger','table-warning');
-        if (this.value === 'hecho')        row.classList.add('table-success');
-        else if (this.value === 'pendiente') row.classList.add('table-danger');
-        else                                 row.classList.add('table-warning');
-        // TODO: aquí dispara tu fetch o redirect para guardar el cambio en backend
-      });
-    });
-  </script>
 {% endif %}
 
+{% if respuestas %}
+  <div class="mb-4">
+    <h2 class="h5 text-center">Procesos</h2>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover" id="tableProcesos">
+        <thead class="table-dark">
+          <tr>
+            <th>Proceso</th>
+            <th>Fecha de respuesta</th>
+            <th>Calificación</th>
+            <th>Fecha de Cumplimiento</th>
+            <th>Observación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for proceso in respuestas %}
+            <tr>
+              <td>{{ proceso.proceso }}</td>
+              <td>{{ proceso.fecha_respuesta }}</td>
+              <td>{{ proceso.calificacion }}</td>
+              <td>{{ proceso.fecha_cumplimiento }}</td>
+              <td>{{ proceso.observaciones }}</td>
+              <td>
+                <a href="{% url 'control_procesos:editar_respuesta' proceso.id %}" class="btn btn-info btn-sm">Editar</a>
+                <a href="{% url 'control_procesos:eliminar_proceso' proceso.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este proceso?');">Eliminar</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+  
   {% if carpeta.nombre|lower == "sistema" %}
     <div class="mb-4">
       <h4>Sistemas</h4>
@@ -688,7 +800,7 @@
     </a>
     <a href="{% url 'home' %}" class="btn btn-outline-primary action-btn">🏠 Inicio</a>
     <a href="{% url 'carpetas:listar_carpetas' %}" class="btn btn-outline-info action-btn">📂 Carpeta Principal</a>
-  </div>
+  
 </div>  <!-- Fin del container -->
 
 <!-- Modal para Crear Subcarpeta -->

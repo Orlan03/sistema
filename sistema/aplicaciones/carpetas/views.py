@@ -90,10 +90,17 @@ def crear_subcarpeta(request, carpeta_id):
 
     return render(request, 'carpetas/crear_carpeta.html', {'form': form, 'carpeta_padre': carpeta_padre})
 
+import unicodedata
+import re
+
+def limpiar_nombre_archivo(nombre):
+    nombre = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode('ascii')
+    nombre = re.sub(r'[^\w\s.-]', '', nombre)  # Elimina caracteres no deseados
+    return nombre.replace(' ', '_')
+
 
 @login_required
 def subir_documento(request, carpeta_id):
-    """Vista para subir documentos a una carpeta"""
     carpeta = get_object_or_404(Carpeta, id=carpeta_id)
 
     if request.method == 'POST':
@@ -101,58 +108,83 @@ def subir_documento(request, carpeta_id):
         if form.is_valid():
             documento = form.save(commit=False)
             documento.carpeta = carpeta
+            documento.archivo.name = limpiar_nombre_archivo(documento.archivo.name)
             documento.save()
             return redirect('carpetas:ver_carpeta', carpeta_id=carpeta.id)
     else:
         form = DocumentoForm()
 
-    return render(request, 'carpetas/subir_documento.html', {'form': form, 'carpeta': carpeta})
-
-
+    return render(request, 'carpetas/subir_documento.html', {
+        'form': form,
+        'carpeta': carpeta
+    })
 
 
 @login_required
 def ver_carpeta(request, carpeta_id):
     carpeta = get_object_or_404(Carpeta, id=carpeta_id)
-    subcarpetas = carpeta.subcarpetas.all()
-    documentos = carpeta.documentos.all()
-    procesos = carpeta.procesos.all()
-    # CXC
-    cxcs = carpeta.cxcs.all()  # Si tu modelo CXC tiene related_name='cxcs'
-    
-    # Respuestas y Cuentas
-    respuestas = Respuesta.objects.filter(carpeta=carpeta)
-    cuentas = CuentaPorCobrar.objects.filter(carpeta=carpeta)
-    
-    # Totales
-    total_cobrado = sum(cuenta.cobro for cuenta in cuentas)
-    total_saldo = sum(cuenta.saldo for cuenta in cuentas)
-    
-    # Función auxiliar para determinar si la carpeta pertenece a la rama "Informes Periciales Grupo TACAE"
-    def pertenece_informes(carpeta_obj):
-        aux = carpeta_obj
-        while aux is not None:
-            if "informes periciales grupo tacae" in aux.nombre.lower():
+
+    # ————— Persistir cambio de estado (si aplica) —————
+    proc_id = request.GET.get('change_proc')
+    nuevo   = request.GET.get('estado')
+    if proc_id and nuevo:
+        try:
+            p = Proceso.objects.get(pk=proc_id, carpeta=carpeta)
+            if nuevo in dict(Proceso.ESTADO_CHOICES):
+                p.estado = nuevo
+                p.save()
+        except Proceso.DoesNotExist:
+            pass
+        return redirect('carpetas:ver_carpeta', carpeta_id)
+
+    # Obtener datos relacionados
+    subcarpetas    = carpeta.subcarpetas.all()
+    documentos     = carpeta.documentos.all()
+    procesos       = carpeta.procesos.all()
+    cxcs           = carpeta.cxcs.all()
+    respuestas     = Respuesta.objects.filter(carpeta=carpeta)
+    cuentas        = CuentaPorCobrar.objects.filter(carpeta=carpeta)
+    total_cobrado  = sum(c.cobro for c in cuentas)
+    total_saldo    = sum(c.saldo for c in cuentas)
+    form           = DocumentoForm()
+
+    # Verifica si pertenece a "Informes Periciales Grupo TACAE"
+    def pertenece_informes(c):
+        while c:
+            if "informes periciales grupo tacae" in c.nombre.lower():
                 return True
-            aux = aux.padre
+            c = c.padre
         return False
 
-    # Flag que indica si la carpeta (o alguno de sus padres) pertenece a "Informes Periciales Grupo TACAE"
     flag_pertenece_informes = pertenece_informes(carpeta)
-    
+
+    # ————— Obtener carpeta anterior y siguiente (hermanas) —————
+    if carpeta.padre:
+        hermanas = list(Carpeta.objects.filter(padre=carpeta.padre).order_by('id'))
+    else:
+        hermanas = list(Carpeta.objects.filter(padre=None).order_by('id'))
+
+    actual_index = hermanas.index(carpeta)
+    anterior = hermanas[actual_index - 1] if actual_index > 0 else None
+    siguiente = hermanas[actual_index + 1] if actual_index < len(hermanas) - 1 else None
+
+    # Renderizar
     return render(request, 'carpetas/ver_carpeta.html', {
-        'carpeta': carpeta,
-        'subcarpetas': subcarpetas,
-        'documentos': documentos,
-        'procesos': procesos,
-        'cxcs': cxcs,
-        'cuentas': cuentas,
-        'total_cobrado': total_cobrado,
-        'total_saldo': total_saldo,
-        'pertenece_informes': flag_pertenece_informes,
-        'respuestas': respuestas,  # si los necesitas en el template
+        'carpeta':             carpeta,
+        'subcarpetas':         subcarpetas,
+        'documentos':          documentos,
+        'procesos':            procesos,
+        'cxcs':                cxcs,
+        'respuestas':          respuestas,
+        'cuentas':             cuentas,
+        'total_cobrado':       total_cobrado,
+        'total_saldo':         total_saldo,
+        'form':                form,
+        'pertenece_informes':  flag_pertenece_informes,
+        'anterior':            anterior,
+        'siguiente':           siguiente,
     })
-    
+
 @login_required
 def eliminar_carpeta(request, carpeta_id):
     """
@@ -168,3 +200,26 @@ def eliminar_carpeta(request, carpeta_id):
         return redirect('carpetas:ver_carpeta', carpeta_id=padre_id)
     else:
         return redirect('carpetas:listar_carpetas')
+    
+@login_required
+def editar_documento(request, doc_id):
+    doc = get_object_or_404(Documento, id=doc_id)
+    carpeta = doc.carpeta
+    if request.method == 'POST':
+        form = DocumentoForm(request.POST, request.FILES, instance=doc)
+        if form.is_valid():
+            form.save()
+            return redirect('carpetas:ver_carpeta', carpeta.id)
+    else:
+        form = DocumentoForm(instance=doc)
+    return render(request, 'carpetas/editar_documento.html', {
+        'form': form,
+        'carpeta': carpeta,
+    })
+
+@login_required
+def eliminar_documento(request, doc_id):
+    doc = get_object_or_404(Documento, id=doc_id)
+    carpeta_id = doc.carpeta.id
+    doc.delete()
+    return redirect('carpetas:ver_carpeta', carpeta_id)

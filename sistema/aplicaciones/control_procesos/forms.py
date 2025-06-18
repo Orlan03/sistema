@@ -64,6 +64,9 @@ class CuentaPorCobrarForm(forms.ModelForm):
             "class": "form-control bg-dark text-white border-info",
             "placeholder": "Ingrese una observación"
         })
+    cobro = forms.DecimalField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    observacion = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Ingrese una observación'}))
+
 
 
 class CXCForm(forms.ModelForm):

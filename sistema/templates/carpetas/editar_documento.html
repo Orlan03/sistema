@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Editar Documento - TACAE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card mx-auto shadow-lg" style="max-width: 600px; border-radius: 12px;">
+    <div class="card-header bg-primary text-white text-center" style="border-radius: 12px 12px 0 0;">
+      <h2 class="m-0"><i class="fas fa-file-alt me-2"></i> Editar Documento</h2>
+    </div>
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <div class="card-body p-4">
+        {% for field in form %}
+          <div class="form-floating mb-3">
+            {{ field|add_class:"form-control" }}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="card-footer d-flex justify-content-between gap-2" style="border-radius: 0 0 12px 12px;">
+        <a href="{% url 'carpetas:ver_carpeta' carpeta.id %}" class="btn btn-outline-secondary btn-capsule">
+          <i class="fas fa-arrow-left me-1"></i> Cancelar
+        </a>
+        <button type="submit" class="btn btn-success btn-capsule">
+          <i class="fas fa-save me-1"></i> Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .btn-capsule {
+    border-radius: 25px;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .btn-capsule.btn-success {
+    background: linear-gradient(90deg, #198754, #20c997);
+    border: none;
+    color: #fff;
+  }
+  .btn-capsule.btn-outline-secondary {
+    background: #f8f9fa;
+    border: 1px solid #6c757d;
+    color: #6c757d;
+  }
+  .btn-capsule:hover {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+  .form-floating .form-control {
+    height: calc(3rem + 2px);
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+  }
+  .form-floating textarea.form-control {
+    min-height: 120px;
+  }
+  .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+  }
+  .form-floating > label {
+    transform: translate(1.25rem, 1rem) scale(1);
+    padding: 0 6px;
+    background-color: white;
+  }
+</style>
+{% endblock %}

@@ -20,12 +20,7 @@
   <!-- Acciones (Notificaciones y Cerrar Sesión) -->
   <div class="topbar-right">
     <!-- Campana de notificaciones -->
-    <div class="bell-icon" onclick="toggleDropdown()">
-      <img src="{% static 'img/campana_icono.png' %}" alt="Campana" class="bell-img">
-      {% if total_no_leidas %}
-        <span class="badge">{{ total_no_leidas }}</span>
-      {% endif %}
-    </div>
+    
     <!-- Botón de cerrar sesión -->
     <a href="{% url 'login' %}" class="logout-btn">Cerrar Sesión</a>
   </div>
@@ -76,6 +71,43 @@
       <a href="{% url 'eventos:listar_eventos' %}" class="card-btn">Ver Eventos</a>
     </div>
   </div>
+  {% if procesos_por_caducar %}
+    <div style="
+      background-color: #fff3cd;
+      border-left: 6px solid #ffc107;
+      padding: 20px;
+      margin: 30px auto;
+      max-width: 800px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-size: 1.1rem;
+      color: #856404;
+    ">
+      <strong><i class="fas fa-exclamation-triangle"></i> Atención:</strong>
+      <ul style="padding-left: 1.5rem; margin-top: 10px;">
+        {% for proceso in procesos_por_caducar %}
+          <li style="margin-bottom: 10px;">
+            El proceso 
+            <a href="{% url 'carpetas:ver_carpeta' proceso.carpeta.id %}" style="font-weight: bold; text-decoration: underline; color: #856404;">
+              "{{ proceso.proceso }}"
+            </a>
+            vence el <strong>{{ proceso.fecha_limite|date:"d/m/Y" }}</strong>. Responsable: 
+            <strong>
+              {% if proceso.responsable %}
+                {{ proceso.responsable.get_full_name|default:proceso.responsable.username }}
+              {% else %}
+                No asignado
+              {% endif %}
+            </strong>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+
+
+
 </section>
 
 <!-- Estilos CSS -->

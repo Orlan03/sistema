@@ -1,13 +1,20 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Subir Documento - TACAE{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Subir Documento</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">📁 Subir carpeta de documentos</h2>
+
     <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Subir</button>
+    {% csrf_token %}
+        <div class="mb-3">
+            <label for="archivos" class="form-label">Seleccionar archivos o carpeta</label>
+            <input type="file" name="archivos" multiple class="form-control" id="archivos" webkitdirectory directory>
+        </div>
+        <button type="submit" class="btn btn-primary">Subir Documentos</button>
     </form>
+
 </div>
 {% endblock %}

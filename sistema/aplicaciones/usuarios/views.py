@@ -6,7 +6,9 @@ from django.urls import reverse_lazy
 from .forms import EmpleadoForm, UsernameOrCedulaAuthenticationForm
 from .models import Empleado
 from django.contrib.auth.models import User
-
+from datetime import timedelta
+from django.utils import timezone
+from aplicaciones.control_procesos.models import Proceso
 # Vista de inicio de sesión
 def login_view(request):
     if request.method == "POST":
@@ -25,8 +27,17 @@ def login_view(request):
 # Vista del Home (definida una sola vez)
 @login_required
 def home_view(request):
-    return render(request, 'usuarios/home.html', {'usuario': request.user.username})
+    hoy = timezone.now().date()
+    en_dos_dias = hoy + timedelta(days=2)
 
+    procesos_por_caducar = Proceso.objects.filter(
+        fecha_limite__range=(hoy, en_dos_dias)
+    ).order_by('fecha_limite')
+
+    return render(request, 'usuarios/home.html', {
+        'usuario': request.user.username,
+        'procesos_por_caducar': procesos_por_caducar
+    })
 # Función para verificar si el usuario es dueño (admin)
 def is_owner(user):
     return user.is_authenticated and user.is_staff

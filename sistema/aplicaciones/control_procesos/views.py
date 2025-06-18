@@ -6,7 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import datetime
 from django.urls import reverse  
+from django.contrib.auth.models import User
 
+from aplicaciones.usuarios.models import Empleado
 def obtener_todas_subcarpetas(carpeta, visitadas=None):
     """Recupera todas las subcarpetas dentro de una carpeta, sin importar el nivel"""
     if visitadas is None:
@@ -281,17 +283,36 @@ def eliminar_cuenta_por_cobrar(request, cuenta_id):
 
 
 
+
 def listar_cuentas_por_cobrar(request, carpeta_id):
     carpeta = get_object_or_404(Carpeta, id=carpeta_id)
-    cuentas = carpeta.cuentas_por_cobrar.all()  # CORRECTO ✅
 
+    # Cuentas a mostrar (todas al inicio)
+    cuentas = CuentaPorCobrar.objects.filter(carpeta=carpeta).select_related('proceso__responsable')
 
+    # Filtro GET
+    responsable_id = request.GET.get("responsable")
+    if responsable_id:
+        cuentas = cuentas.filter(proceso__responsable__id=responsable_id)
+
+    # ✅ Lista completa de responsables de esta carpeta (no de las cuentas ya filtradas)
+    responsables_ids = CuentaPorCobrar.objects.filter(
+        carpeta=carpeta, proceso__responsable__isnull=False
+    ).values_list("proceso__responsable__id", flat=True).distinct()
+
+    responsables = User.objects.filter(id__in=responsables_ids)
+
+    total_cobrado = sum(c.cobro or 0 for c in cuentas)
+    total_saldo = sum(c.saldo or 0 for c in cuentas)
 
     return render(request, "control_procesos/listar_cuentas.html", {
+        "carpeta": carpeta,
         "cuentas": cuentas,
-        "carpeta": carpeta
+        "responsables": responsables,
+        "filtro_responsable": responsable_id,
+        "total_cobrado": total_cobrado,
+        "total_saldo": total_saldo,
     })
-
 
 
 ###############################CXC#########################
@@ -607,3 +628,27 @@ def marcar_y_ver_carpeta(request, noti_id):
     # Construye URL /carpetas/ver/<carpeta_id>/#proc-<proc_id>
     url = reverse('carpetas:ver_carpeta', args=[carpeta_id])
     return redirect(f"{url}#proc-{proc_id}")
+
+from django.views.decorators.csrf import csrf_exempt 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+import json
+
+
+@login_required
+@require_POST
+def cambiar_estado_ajax(request):
+    try:
+        payload = json.loads(request.body)
+        proc_id = payload.get('id')
+        nuevo_estado = payload.get('estado')
+        proc = get_object_or_404(Proceso, pk=proc_id)
+        # Asumiendo que usas choices en el campo estado:
+        opciones = dict(Proceso.ESTADO_CHOICES)
+        if nuevo_estado in opciones:
+            proc.estado = nuevo_estado
+            proc.save()
+            return JsonResponse({'status': 'ok'})
+    except Exception as e:
+        pass
+    return JsonResponse({'status': 'error'}, status=400)

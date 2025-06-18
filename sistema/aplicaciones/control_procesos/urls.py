@@ -40,7 +40,7 @@ urlpatterns = [
     path('banco/crear/<int:carpeta_id>/', crear_banco, name='crear_banco'),
     path('banco/editar/<int:banco_id>/', editar_banco, name='editar_banco'),
     path('banco/eliminar/<int:banco_id>/', eliminar_banco, name='eliminar_banco'),
-    
+    path('ajax/cambiar-estado/', cambiar_estado_ajax, name='cambiar_estado_ajax'),
     path('noti/ver/<int:noti_id>/',marcar_y_ver_carpeta,name='marcar_y_ver_carpeta'),
 
     

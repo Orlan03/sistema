@@ -11,12 +11,13 @@ def notificaciones_unificadas_context_processor(request):
     1) Eventos (tipo='evento') 5h antes de fecha_evento
     2) Procesos  (tipo='limite')  2d antes de fecha_limite
     3) Respuestas(tipo='respuesta') 2d antes de fecha_cumplimiento
-    Devuelve `notificaciones_no_leidas` (combinadas y ordenadas) y `total_no_leidas`.
+    Devuelve `notificaciones_no_leidas` (creadas hoy) y `total_no_leidas`.
     """
     notis = []
 
     if request.user.is_authenticated:
         ahora = timezone.now()
+        hoy = ahora.date()
 
         # ----- 1) Eventos (5h antes) -----
         corte_ev = ahora + timedelta(hours=5)
@@ -38,8 +39,7 @@ def notificaciones_unificadas_context_processor(request):
                     leida=False
                 )
 
-        # ----- 2) Procesos (2d antes) -----
-        hoy = ahora.date()
+        # ----- 2) Procesos (2 días antes) -----
         corte_pr = hoy + timedelta(days=2)
         procesos_prox = Proceso.objects.filter(
             fecha_limite__gte=hoy,
@@ -52,15 +52,21 @@ def notificaciones_unificadas_context_processor(request):
                     proceso=proc,
                     tipo='limite'
                 ).exists():
+                    responsable = (
+                        proc.responsable.get_full_name() if proc.responsable and proc.responsable.get_full_name()
+                        else (proc.responsable.username if proc.responsable else "No asignado")
+                    )
+
                     Notificacion.objects.create(
                         usuario=usr,
                         proceso=proc,
                         tipo='limite',
-                        mensaje=f"El proceso “{proc.proceso}” vence en menos de 2 días.",
+                        mensaje=f"El proceso “{proc.proceso}” vence el {proc.fecha_limite.strftime('%d/%m/%Y')}. Responsable: {responsable}",
                         leida=False
                     )
 
-        # ----- 3) Respuestas (2d antes) -----
+
+        # ----- 3) Respuestas (2 días antes) -----
         respuestas_prox = Respuesta.objects.filter(
             fecha_cumplimiento__gte=hoy,
             fecha_cumplimiento__lte=corte_pr
@@ -83,16 +89,11 @@ def notificaciones_unificadas_context_processor(request):
                         leida=False
                     )
 
-        # ----- Recuperar todas las no leídas y ordenarlas -----
-        ev_no = Notificacion.objects.filter(usuario=request.user, tipo='evento',     leida=False)
-        pr_no = Notificacion.objects.filter(usuario=request.user, tipo='limite',     leida=False)
-        re_no = Notificacion.objects.filter(usuario=request.user, tipo='respuesta',  leida=False)
-
-        notis = sorted(
-            list(ev_no) + list(pr_no) + list(re_no),
-            key=lambda n: n.fecha_creacion,
-            reverse=True
-        )
+        # ----- Solo mostrar notificaciones de HOY -----
+        notis = Notificacion.objects.filter(
+            usuario=request.user,
+            fecha_creacion__date=hoy
+        ).order_by('-fecha_creacion')
 
     total = len(notis)
     return {

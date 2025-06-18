@@ -10,4 +10,7 @@ urlpatterns = [
     path('eliminar/<int:carpeta_id>/', views.eliminar_carpeta, name='eliminar_carpeta'),
     path('subir/<int:carpeta_id>/', views.subir_documento, name='subir_documento'),  
     path('crear-subcarpeta/<int:carpeta_id>/', views.crear_subcarpeta, name='crear_subcarpeta'),
+    path('documentos/editar/<int:doc_id>/', views.editar_documento,   name='editar_documento'),
+    path('documentos/eliminar/<int:doc_id>/', views.eliminar_documento, name='eliminar_documento'),
+    
 ]
